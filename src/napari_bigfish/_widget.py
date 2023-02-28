@@ -9,7 +9,7 @@ Replace code below according to your needs.
 from typing import TYPE_CHECKING
 
 from magicgui import magic_factory
-from qtpy.QtWidgets import QHBoxLayout, QPushButton, QWidget, QLabel, QLineEdit
+from qtpy.QtWidgets import QGridLayout, QPushButton, QWidget, QLabel, QLineEdit
 from qtpy.QtCore import Slot
 from napari_bigfish.bigfishapp import BigfishApp
 from napari.utils import notifications
@@ -43,20 +43,31 @@ class ExampleQWidget(QWidget):
         self.sigmaZInput.textChanged.connect(self.updateSigmaZ)
         self.sigmaZInput.setMaximumWidth(50)
 
-        btn = QPushButton("Subtract Background")
-        btn.clicked.connect(self.onClickSubtractBackground)
+        subtractBackgroundButton = QPushButton("Subtract Background")
+        subtractBackgroundButton.clicked.connect(self.onClickSubtractBackground)
 
-        self.setLayout(QHBoxLayout())
-        self.layout().addWidget(sigmaXYLabel)
-        self.layout().addWidget(self.sigmaXYInput)
-        self.layout().addWidget(sigmaZLabel)
-        self.layout().addWidget(self.sigmaZInput)
-        self.layout().addWidget(btn)
+        thresholdLabel = QLabel(self)
+        thresholdLabel.setText("threshold: ")
+        self.thresholdInput = QLineEdit(self)
+        self.thresholdInput.setText(str(self.model.getThreshold()))
+        self.thresholdInput.textChanged.connect(self.updateThreshold)
+        self.thresholdInput.setMaximumWidth(50)
+
+        self.setLayout(QGridLayout())
+        self.layout().addWidget(sigmaXYLabel, 1, 0)
+        self.layout().addWidget(self.sigmaXYInput, 1, 1)
+        self.layout().addWidget(sigmaZLabel, 1, 2)
+        self.layout().addWidget(self.sigmaZInput, 1, 3)
+        self.layout().addWidget(subtractBackgroundButton, 1, 4)
+
+        self.layout().addWidget(thresholdLabel, 2, 0)
+        self.layout().addWidget(self.thresholdInput, 2, 1)
 
 
     def setModel(self, aModel):
         self.model = aModel
-        self.model.sigma.connect(self.sigmaChanged)
+        self.model.sigmaSignal.connect(self.sigmaChanged)
+        self.model.thresholdSignal.connect(self.thresholdChanged)
 
 
     def onClickSubtractBackground(self):
@@ -67,23 +78,31 @@ class ExampleQWidget(QWidget):
         notifications.show_info("Running background subtraction with sigma xy = {}, sigma z = {} on {}.".format(self.model.getSigmaXY(), self.model.getSigmaZ(), activeLayer.name))
         data = activeLayer.data
         scale = activeLayer.scale
+        squeezed = False
         if data.shape[0] == 1:
             data = np.squeeze(data, axis=0)
             scale = scale[1:]
+            squeezed = True
         sigma = (self.model.getSigmaXY(), self.model.getSigmaXY())
         if data.ndim > 2:
             sigma = (self.model.getSigmaXY(), self.model.getSigmaXY(), self.model.getSigmaZ())
         self.model.setData(data)
         self.model.subtractBackground(sigma)
         cleaned = self.model.getResult()
+        if squeezed:
+            cleaned = np.expand_dims(cleaned, axis=0)
         self.viewer.add_image(cleaned, scale=scale, name=activeLayer.name, colormap=activeLayer.colormap, blending=activeLayer.blending)
-
 
 
     @Slot(float, float)
     def sigmaChanged(self, sigmaXY, sigmaZ):
         self.sigmaXYInput.setText(str(sigmaXY))
         self.sigmaZInput.setText(str(sigmaZ))
+
+
+    @Slot(float)
+    def thresholdChanged(self, threshold):
+        self.thresholdInput.setText(str(threshold))
 
 
     @Slot(str)
@@ -107,6 +126,16 @@ class ExampleQWidget(QWidget):
         self.model.sigmaZ = value
         return True
 
+
+    @Slot(str)
+    def updateThreshold(self, text):
+        try:
+            value = float(text)
+        except:
+            self.thresholdInput.setText(str(self.model.getThreshold()))
+            return False
+        self.model.threshold = value
+        return True
 
 
 @magic_factory
