@@ -1,10 +1,5 @@
 """
-This module is an example of a barebones QWidget plugin for napari
-
-It implements the Widget specification.
-see: https://napari.org/stable/plugins/guides.html?#widgets
-
-Replace code below according to your needs.
+A Widget to run the bigfish FISH-spot detection
 """
 import numpy as np
 from typing import TYPE_CHECKING
@@ -21,7 +16,7 @@ if TYPE_CHECKING:
     import napari
 
 
-class ExampleQWidget(QWidget):
+class DetectFISHSpotsWidget(QWidget):
 
 
     def __init__(self, napari_viewer):
@@ -34,6 +29,23 @@ class ExampleQWidget(QWidget):
         self.setLayout(QVBoxLayout())
         self.addSubtractBackgroundWidget(1)
         self.addDetectSpotsWidget(2)
+
+
+    def addSubtractBackgroundWidget(self, line):
+        formLayout = QFormLayout()
+        sigmaXYLabel, self.sigmaXYInput = \
+         WidgetTool.getLineInput(self, "sigma xy: ",self.model.getSigmaXY(),
+                                 self.fieldWidth, self.updateSigmaXY)
+        sigmaZLabel, self.sigmaZInput = \
+         WidgetTool.getLineInput(self, "sigma z: ",self.model.getSigmaZ(),
+                                 self.fieldWidth, self.updateSigmaZ)
+        subtractBackgroundButton = QPushButton("Subtract Background")
+        subtractBackgroundButton.setMaximumWidth(self.maxButtonWidth)
+        subtractBackgroundButton.clicked.connect(self.onClickSubtractBackground)
+        formLayout.addRow(sigmaXYLabel, self.sigmaXYInput)
+        formLayout.addRow(sigmaZLabel, self.sigmaZInput)
+        self.layout().addLayout(formLayout)
+        self.layout().addWidget(subtractBackgroundButton)
 
 
     def addDetectSpotsWidget(self, line):
@@ -63,23 +75,6 @@ class ExampleQWidget(QWidget):
         self.layout().addWidget(self.removeDuplicatesCheckbox)
         self.layout().addWidget(self.findThresholdCheckbox)
         self.layout().addWidget(detectSpotsButton)
-
-
-    def addSubtractBackgroundWidget(self, line):
-        formLayout = QFormLayout()
-        sigmaXYLabel, self.sigmaXYInput = \
-         WidgetTool.getLineInput(self, "sigma xy: ",self.model.getSigmaXY(),
-                                 self.fieldWidth, self.updateSigmaXY)
-        sigmaZLabel, self.sigmaZInput = \
-         WidgetTool.getLineInput(self, "sigma z: ",self.model.getSigmaZ(),
-                                 self.fieldWidth, self.updateSigmaZ)
-        subtractBackgroundButton = QPushButton("Subtract Background")
-        subtractBackgroundButton.setMaximumWidth(self.maxButtonWidth)
-        subtractBackgroundButton.clicked.connect(self.onClickSubtractBackground)
-        formLayout.addRow(sigmaXYLabel, self.sigmaXYInput)
-        formLayout.addRow(sigmaZLabel, self.sigmaZInput)
-        self.layout().addLayout(formLayout)
-        self.layout().addWidget(subtractBackgroundButton)
 
 
     def setModel(self, aModel):
@@ -114,7 +109,11 @@ class ExampleQWidget(QWidget):
             squeezed = True
         self.model.setData(data)
         self.model.detectSpots(tuple(scale))
-        self.viewer.add_points(self.model.getSpots(), size=self.spotDisplaySize, scale=scale)
+        name = "spots in {image}".format(image=activeLayer.name)
+        self.viewer.add_points(self.model.getSpots(),
+                               name=name,
+                               size=self.spotDisplaySize,
+                               scale=scale)
 
 
     def onClickSubtractBackground(self):
@@ -245,13 +244,3 @@ class ExampleQWidget(QWidget):
         return True
 
 
-@magic_factory
-def example_magic_widget(img_layer: "napari.layers.Image"):
-    print(f"you have selected {img_layer}")
-
-
-# Uses the `autogenerate: true` flag in the plugin manifest
-# to indicate it should be wrapped as a magicgui to autogenerate
-# a widget.
-def example_function_widget(img_layer: "napari.layers.Image"):
-    print(f"you have selected {img_layer}")

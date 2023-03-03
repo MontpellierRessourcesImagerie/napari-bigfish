@@ -1,8 +1,21 @@
+from enum import Enum
+from collections import Counter
 from qtpy.QtCore import Signal
 from qtpy.QtCore import QObject
 from bigfish import stack, detection
 
+
+class SpotEnvironment(Enum):
+    BACKGROUND = 0
+    CYTOPLASM = 1
+    NUCLEUS = 2
+
+
 class BigfishApp(QObject):
+    """
+    Application model for the napari FISH-spot detection widget that runs
+    the bigfish gaussian background correction and spot detection.
+    """
 
     sigmaSignal = Signal(float, float)
     thresholdSignal = Signal(float)
@@ -23,6 +36,56 @@ class BigfishApp(QObject):
         self.data = None
         self.spots = None
         self.result = None
+        self.cellLabelOfSpot = None
+        self.nucleiLabelOfSpot = None
+
+
+    def subtractBackground(self, sigma):
+        self.result = stack.remove_background_gaussian(self.data, sigma)
+
+
+    def detectSpots(self, scale):
+        radiusXY = self.getRadiusXY()
+        if self.findThreshold:
+            self.spots, threshold = detection.detect_spots(
+                self.data,
+                remove_duplicate = self.shallRemoveDuplicates(),
+                return_threshold = self.shallFindThreshold(),
+                voxel_size = scale,
+                spot_radius = (self.getRadiusZ(), radiusXY , radiusXY))
+            self.setThreshold(threshold)
+        else:
+            self.spots = detection.detect_spots(
+                self.data,
+                remove_duplicate = self.shallRemoveDuplicates(),
+                return_threshold = self.shallFindThreshold(),
+                voxel_size = scale,
+                spot_radius = (self.getRadiusZ(), radiusXY , radiusXY))
+
+
+    def countSpotsPerCellAndEnvironment(self, cytoplasmLabels, nucleiLabels):
+        if not self.spots:
+            return False
+        self.cellLabelOfSpot = []*len(self.spots)
+        self.nucleiLabelOfSpot = []*len(self.spots)
+        for index, coords in enumerate(self.spots):
+            if cytoplasmLabels:
+                self.cellLabelOfSpot[index] = cytoplasmLabels[coords]
+            if nucleiLabels:
+                self.nucleiLabelOfSpot[index] = (nucleiLabels[coords]>0)
+        return True
+
+
+    def getSpotCountPerCellAndEnvironment(self):
+        table = [] * len(self.spots)
+        line1 = [0, self.cellLabelOfSpot[0], 0, 0]
+        table[0] = line1
+        cellLabelAndNucleusFlag = zip(self.cellLabelOfSpot, self.nucleiLabelOfSpot)
+        counter = Counter(cellLabelAndNucleusFlag)
+        for cell, flag in zip(range(1, len(self.spots)), [False, True]):
+            line = [cell, 0, counter[cell, False], counter[cell, True]]
+            table[cell] = line
+        return table
 
 
     def getSigmaXY(self):
@@ -71,29 +134,6 @@ class BigfishApp(QObject):
 
     def getResult(self):
         return self.result
-
-
-    def subtractBackground(self, sigma):
-        self.result = stack.remove_background_gaussian(self.data, sigma)
-
-
-    def detectSpots(self, scale):
-        radiusXY = self.getRadiusXY()
-        if self.findThreshold:
-            self.spots, threshold = detection.detect_spots(
-                self.data,
-                remove_duplicate = self.shallRemoveDuplicates(),
-                return_threshold = self.shallFindThreshold(),
-                voxel_size = scale,
-                spot_radius = (self.getRadiusZ(), radiusXY , radiusXY))
-            self.setThreshold(threshold)
-        else:
-            self.spots = detection.detect_spots(
-                self.data,
-                remove_duplicate = self.shallRemoveDuplicates(),
-                return_threshold = self.shallFindThreshold(),
-                voxel_size = scale,
-                spot_radius = (self.getRadiusZ(), radiusXY , radiusXY))
 
 
     def getSpots(self):

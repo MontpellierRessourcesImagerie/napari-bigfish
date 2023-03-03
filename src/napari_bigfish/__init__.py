@@ -4,10 +4,9 @@ try:
 except ImportError:
     __version__ = "unknown"
 from ._sample_data import make_sample_data
-from ._widget import ExampleQWidget, example_magic_widget
+from ._widget import DetectFISHSpotsWidget
 
 __all__ = (
     "make_sample_data",
-    "ExampleQWidget",
-    "example_magic_widget",
+    "DetectFISHSpotsWidget"
 )

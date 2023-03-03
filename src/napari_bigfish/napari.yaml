@@ -6,23 +6,13 @@ contributions:
       python_name: napari_bigfish._sample_data:make_sample_data
       title: Load sample data from BigFISH smFISH Analysis
     - id: napari-bigfish.make_qwidget
-      python_name: napari_bigfish._widget:ExampleQWidget
-      title: Make example QWidget
-    - id: napari-bigfish.make_magic_widget
-      python_name: napari_bigfish._widget:example_magic_widget
-      title: Make example magic widget
-    - id: napari-bigfish.make_func_widget
-      python_name: napari_bigfish._widget:example_function_widget
-      title: Make example function widget
+      python_name: napari_bigfish._widget:DetectFISHSpotsWidget
+      title: Make DetectFISHSpotsWidget QWidget
   sample_data:
     - command: napari-bigfish.make_sample_data
       display_name: BigFISH smFISH Analysis
       key: unique_id.1
   widgets:
     - command: napari-bigfish.make_qwidget
-      display_name: Example QWidget
-    - command: napari-bigfish.make_magic_widget
-      display_name: Example Magic Widget
-    - command: napari-bigfish.make_func_widget
-      autogenerate: true
-      display_name: Example Function Widget
+      display_name: Detect FISH spots
+
