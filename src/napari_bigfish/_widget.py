@@ -5,12 +5,13 @@ import numpy as np
 from typing import TYPE_CHECKING
 from magicgui import magic_factory
 from qtpy.QtWidgets import QVBoxLayout, QFormLayout
-from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox
+from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
 from qtpy.QtCore import Slot
 from napari.utils import notifications
+
 from napari_bigfish.bigfishapp import BigfishApp
 from napari_bigfish.qtutil import WidgetTool
-
+from napari_bigfish.napari_util import NapariUtil
 
 if TYPE_CHECKING:
     import napari
@@ -23,18 +24,22 @@ class DetectFISHSpotsWidget(QWidget):
         super().__init__()
         self.setModel(BigfishApp())
         self.viewer = napari_viewer
+        self.napariUtil = NapariUtil(self.viewer)
         self.fieldWidth = 50
         self.maxButtonWidth = 200
         self.spotDisplaySize = 5
         self.setLayout(QVBoxLayout())
-        self.addSubtractBackgroundWidget(1)
-        self.addDetectSpotsWidget(2)
+        self.addSubtractBackgroundWidget()
+        self.layout().addSpacing(20)
+        self.addDetectSpotsWidget()
+        self.layout().addSpacing(20)
+        self.addCountSpotsWidget()
 
-
-    def addSubtractBackgroundWidget(self, line):
+    def addSubtractBackgroundWidget(self):
+        groupBox = QGroupBox("Background Subtraction")
         formLayout = QFormLayout()
         sigmaXYLabel, self.sigmaXYInput = \
-         WidgetTool.getLineInput(self, "sigma xy: ",self.model.getSigmaXY(),
+         WidgetTool.getLineInput(self, "sigma xy: ", self.model.getSigmaXY(),
                                  self.fieldWidth, self.updateSigmaXY)
         sigmaZLabel, self.sigmaZInput = \
          WidgetTool.getLineInput(self, "sigma z: ",self.model.getSigmaZ(),
@@ -44,11 +49,15 @@ class DetectFISHSpotsWidget(QWidget):
         subtractBackgroundButton.clicked.connect(self.onClickSubtractBackground)
         formLayout.addRow(sigmaXYLabel, self.sigmaXYInput)
         formLayout.addRow(sigmaZLabel, self.sigmaZInput)
-        self.layout().addLayout(formLayout)
-        self.layout().addWidget(subtractBackgroundButton)
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addLayout(formLayout)
+        verticalLayout.addWidget(subtractBackgroundButton)
+        groupBox.setLayout(verticalLayout)
+        self.layout().addWidget(groupBox)
 
 
-    def addDetectSpotsWidget(self, line):
+    def addDetectSpotsWidget(self):
+        groupBox = QGroupBox("Spot Detection")
         formLayout = QFormLayout()
         thresholdLabel, self.thresholdInput = \
          WidgetTool.getLineInput(self, "threshold: ",self.model.getThreshold(),
@@ -71,10 +80,37 @@ class DetectFISHSpotsWidget(QWidget):
         formLayout.addRow(thresholdLabel, self.thresholdInput)
         formLayout.addRow(radiusXYLabel, self.radiusXYInput)
         formLayout.addRow(radiusZLabel, self.radiusZInput)
-        self.layout().addLayout(formLayout)
-        self.layout().addWidget(self.removeDuplicatesCheckbox)
-        self.layout().addWidget(self.findThresholdCheckbox)
-        self.layout().addWidget(detectSpotsButton)
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addLayout(formLayout)
+        verticalLayout.addWidget(self.removeDuplicatesCheckbox)
+        verticalLayout.addWidget(self.findThresholdCheckbox)
+        verticalLayout.addWidget(detectSpotsButton)
+        groupBox.setLayout(verticalLayout)
+        self.layout().addWidget(groupBox)
+
+
+    def addCountSpotsWidget(self):
+        groupBox = QGroupBox("Spot Counting")
+        formLayout = QVBoxLayout()
+        labelLayers = self.napariUtil.getLabelLayers()
+        cytoLabel, self.cytoCombo = WidgetTool.getComboInput(self,
+                                            "cytoplasm labels: ",
+                                            labelLayers)
+        nucleiLabel, self.nucleiCombo = WidgetTool.getComboInput(self,
+                                            "nuclei labels or mask: ",
+                                            labelLayers)
+        countSpotsButton = QPushButton("Count Spots")
+        countSpotsButton.setMaximumWidth(self.maxButtonWidth)
+        countSpotsButton.clicked.connect(self.onClickCountSpots)
+        formLayout.addWidget(cytoLabel)
+        formLayout.addWidget(self.cytoCombo)
+        formLayout.addWidget(nucleiLabel)
+        formLayout.addWidget(self.nucleiCombo)
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addLayout(formLayout)
+        verticalLayout.addWidget(countSpotsButton)
+        groupBox.setLayout(verticalLayout)
+        self.layout().addWidget(groupBox)
 
 
     def setModel(self, aModel):
@@ -84,6 +120,17 @@ class DetectFISHSpotsWidget(QWidget):
         self.model.radiusSignal.connect(self.radiusChanged)
         self.model.removeDuplicatesSignal.connect(self.removeDuplicatesChanged)
         self.model.findThresholdSignal.connect(self.findThresholdChanged)
+
+
+    def onClickCountSpots(self):
+        cytoLabelsName = self.cytoCombo.currentText()
+        nucleiMaskName = self.nucleiCombo.currentText()
+        if cytoLabelsName and nucleiMaskName:
+            cytoLabels = self.napariUtil.getDataOfLayerWithName(cytoLabelsName)
+            nucleiMask = self.napariUtil.getDataOfLayerWithName(nucleiMaskName)
+            self.model.countSpotsPerCellAndEnvironment(cytoLabels, nucleiMask)
+            table = self.model.getSpotCountPerCellAndEnvironment()
+            print(table)
 
 
     def onClickDetectSpots(self):

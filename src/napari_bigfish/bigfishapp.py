@@ -3,12 +3,7 @@ from collections import Counter
 from qtpy.QtCore import Signal
 from qtpy.QtCore import QObject
 from bigfish import stack, detection
-
-
-class SpotEnvironment(Enum):
-    BACKGROUND = 0
-    CYTOPLASM = 1
-    NUCLEUS = 2
+import numpy as np
 
 
 class BigfishApp(QObject):
@@ -38,7 +33,7 @@ class BigfishApp(QObject):
         self.result = None
         self.cellLabelOfSpot = None
         self.nucleiLabelOfSpot = None
-
+        self.nrOfCells = 0
 
     def subtractBackground(self, sigma):
         self.result = stack.remove_background_gaussian(self.data, sigma)
@@ -64,26 +59,34 @@ class BigfishApp(QObject):
 
 
     def countSpotsPerCellAndEnvironment(self, cytoplasmLabels, nucleiLabels):
-        if not self.spots:
+        if self.spots is None:
             return False
-        self.cellLabelOfSpot = []*len(self.spots)
-        self.nucleiLabelOfSpot = []*len(self.spots)
+        self.nrOfCells = len(np.unique(cytoplasmLabels))
+        self.cellLabelOfSpot = [0]*len(self.spots)
+        self.nucleiLabelOfSpot = [0]*len(self.spots)
         for index, coords in enumerate(self.spots):
-            if cytoplasmLabels:
-                self.cellLabelOfSpot[index] = cytoplasmLabels[coords]
-            if nucleiLabels:
-                self.nucleiLabelOfSpot[index] = (nucleiLabels[coords]>0)
+            print(index, tuple(coords))
+            if not cytoplasmLabels is None:
+                self.cellLabelOfSpot[index] = cytoplasmLabels[tuple(coords)]
+            if not nucleiLabels is None:
+                self.nucleiLabelOfSpot[index] = (nucleiLabels[tuple(coords)]>0)
         return True
 
 
     def getSpotCountPerCellAndEnvironment(self):
-        table = [] * len(self.spots)
-        line1 = [0, self.cellLabelOfSpot[0], 0, 0]
-        table[0] = line1
+        table = [0] * self.nrOfCells
         cellLabelAndNucleusFlag = zip(self.cellLabelOfSpot, self.nucleiLabelOfSpot)
         counter = Counter(cellLabelAndNucleusFlag)
-        for cell, flag in zip(range(1, len(self.spots)), [False, True]):
-            line = [cell, 0, counter[cell, False], counter[cell, True]]
+        line0 = [0, 0, 0, counter[0, False]]
+        table[0] = line0
+        for cell in range(1, self.nrOfCells):
+            notInNucleus = 0
+            inNucleus = 0
+            if (cell, False) in counter.keys():
+                notInNucleus = counter[(cell, False)]
+            if (cell, True) in counter.keys():
+                inNucleus = counter[(cell, True)]
+            line = [cell, notInNucleus, inNucleus, notInNucleus + inNucleus]
             table[cell] = line
         return table
 
