@@ -140,6 +140,8 @@ class DetectFISHSpotsWidget(QWidget):
         if cytoLabelsName and nucleiMaskName:
             cytoLabels = self.napariUtil.getDataOfLayerWithName(cytoLabelsName)
             nucleiMask = self.napariUtil.getDataOfLayerWithName(nucleiMaskName)
+            spots = self.napariUtil.getDataOfLayerWithName(spotsName)
+            self.model.spots = spots
             self.model.countSpotsPerCellAndEnvironment(cytoLabels, nucleiMask)
             data = self.model.getSpotCountPerCellAndEnvironment()
             for row in data:
@@ -150,8 +152,7 @@ class DetectFISHSpotsWidget(QWidget):
                 table[headings[index]] = column
             print(table)
             tableView = TableView(table)
-            self.layout().addWidget(tableView)
-            print(tableView)
+            self.viewer.window.add_dock_widget(tableView, area='right', name="Nr. Of Spots: " + spotsName, tabify = False)
 
 
     def onClickDetectSpots(self):
