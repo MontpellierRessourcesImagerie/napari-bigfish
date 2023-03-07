@@ -4,13 +4,13 @@ A Widget to run the bigfish FISH-spot detection
 import numpy as np
 from typing import TYPE_CHECKING
 from magicgui import magic_factory
+from napari.utils.events import Event
 from qtpy.QtWidgets import QVBoxLayout, QFormLayout
 from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
 from qtpy.QtCore import Slot
 from napari.utils import notifications
-
 from napari_bigfish.bigfishapp import BigfishApp
-from napari_bigfish.qtutil import WidgetTool
+from napari_bigfish.qtutil import WidgetTool, TableView
 from napari_bigfish.napari_util import NapariUtil
 
 if TYPE_CHECKING:
@@ -34,6 +34,8 @@ class DetectFISHSpotsWidget(QWidget):
         self.addDetectSpotsWidget()
         self.layout().addSpacing(20)
         self.addCountSpotsWidget()
+        self.viewer.layers.events.inserted.connect(self.onLayerAddedOrRemoved)
+        self.viewer.layers.events.removed.connect(self.onLayerAddedOrRemoved)
 
     def addSubtractBackgroundWidget(self):
         groupBox = QGroupBox("Background Subtraction")
@@ -92,6 +94,11 @@ class DetectFISHSpotsWidget(QWidget):
     def addCountSpotsWidget(self):
         groupBox = QGroupBox("Spot Counting")
         formLayout = QVBoxLayout()
+        spotLayers = self.napariUtil.getPointsLayers()
+        print("spot layers: ", spotLayers)
+        spotsLabel, self.spotsCombo = WidgetTool.getComboInput(self,
+                                            "spots: ",
+                                            spotLayers)
         labelLayers = self.napariUtil.getLabelLayers()
         cytoLabel, self.cytoCombo = WidgetTool.getComboInput(self,
                                             "cytoplasm labels: ",
@@ -102,6 +109,8 @@ class DetectFISHSpotsWidget(QWidget):
         countSpotsButton = QPushButton("Count Spots")
         countSpotsButton.setMaximumWidth(self.maxButtonWidth)
         countSpotsButton.clicked.connect(self.onClickCountSpots)
+        formLayout.addWidget(spotsLabel)
+        formLayout.addWidget(self.spotsCombo)
         formLayout.addWidget(cytoLabel)
         formLayout.addWidget(self.cytoCombo)
         formLayout.addWidget(nucleiLabel)
@@ -123,14 +132,26 @@ class DetectFISHSpotsWidget(QWidget):
 
 
     def onClickCountSpots(self):
+        headings = ["image", "cell", "spots in cytoplasm", "spots in nucleus",
+                    "spots in cell"]
         cytoLabelsName = self.cytoCombo.currentText()
         nucleiMaskName = self.nucleiCombo.currentText()
+        spotsName = self.spotsCombo.currentText()
         if cytoLabelsName and nucleiMaskName:
             cytoLabels = self.napariUtil.getDataOfLayerWithName(cytoLabelsName)
             nucleiMask = self.napariUtil.getDataOfLayerWithName(nucleiMaskName)
             self.model.countSpotsPerCellAndEnvironment(cytoLabels, nucleiMask)
-            table = self.model.getSpotCountPerCellAndEnvironment()
+            data = self.model.getSpotCountPerCellAndEnvironment()
+            for row in data:
+                row.insert(0, spotsName)
+            columns = list(zip(*data))
+            table = {}
+            for index, column in enumerate(columns):
+                table[headings[index]] = column
             print(table)
+            tableView = TableView(table)
+            self.layout().addWidget(tableView)
+            print(tableView)
 
 
     def onClickDetectSpots(self):
@@ -195,6 +216,10 @@ class DetectFISHSpotsWidget(QWidget):
         self.viewer.add_image(cleaned, scale=scale, name=activeLayer.name,
                               colormap=activeLayer.colormap,
                               blending=activeLayer.blending)
+
+
+    def onLayerAddedOrRemoved(self, event: Event):
+        self.updateLayerSelectionComboBoxes()
 
 
     @Slot(int)
@@ -291,3 +316,12 @@ class DetectFISHSpotsWidget(QWidget):
         return True
 
 
+    def updateLayerSelectionComboBoxes(self):
+        labelComboBoxes = [self.cytoCombo, self.nucleiCombo]
+        labelLayers = self.napariUtil.getLabelLayers()
+        for comboBox in labelComboBoxes:
+            WidgetTool.replaceItemsInComboBox(comboBox, labelLayers)
+        spotComboBoxes = [self.spotsCombo]
+        spotLayers = self.napariUtil.getPointsLayers()
+        for comboBox in spotComboBoxes:
+            WidgetTool.replaceItemsInComboBox(comboBox, spotLayers)

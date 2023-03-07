@@ -65,7 +65,6 @@ class BigfishApp(QObject):
         self.cellLabelOfSpot = [0]*len(self.spots)
         self.nucleiLabelOfSpot = [0]*len(self.spots)
         for index, coords in enumerate(self.spots):
-            print(index, tuple(coords))
             if not cytoplasmLabels is None:
                 self.cellLabelOfSpot[index] = cytoplasmLabels[tuple(coords)]
             if not nucleiLabels is None:

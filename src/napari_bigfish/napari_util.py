@@ -1,5 +1,5 @@
 from napari.layers.labels.labels import Labels
-
+from napari.layers.points.points import Points
 
 class NapariUtil:
 
@@ -9,6 +9,10 @@ class NapariUtil:
 
     def getLabelLayers(self):
         return self.getLayersOfType(Labels)
+
+
+    def getPointsLayers(self):
+        return self.getLayersOfType(Points)
 
 
     def getLayersOfType(self, layerType):
