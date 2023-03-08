@@ -1,7 +1,10 @@
+import pyperclip
 from qtpy.QtWidgets import QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem
 from qtpy.QtCore import Qt
 
+
 class WidgetTool:
+
 
     @staticmethod
     def getLineInput(parent, labelText, defaultValue, fieldWidth, callback):
@@ -53,5 +56,25 @@ class TableView(QTableWidget):
                 newitem = QTableWidgetItem(str(item))
                 newitem.setTextAlignment(Qt.AlignRight)
                 self.setItem(m, n, newitem)
-                print(m,n, key, item)
         self.setHorizontalHeaderLabels(horHeaders)
+
+
+    def keyPressEvent(self, event):
+        super().keyPressEvent(event)
+        if event.key() == Qt.Key_C and (event.modifiers() & Qt.ControlModifier):
+            print("copying data to clipboard")
+            copied_cells = self.selectedIndexes()
+            lines = ''
+            lastRow = copied_cells[0].row()
+            for cell in copied_cells:
+                currentRow = cell.row()
+                if lastRow != currentRow:
+                    lines = lines[:-1]
+                    lines = lines + "\n"
+                lastRow = currentRow
+                lines = lines + cell.data() + "\t"
+            if len(lines) > 0:
+                lines = lines[:-1]
+                lines = lines + "\n"
+            pyperclip.copy(lines)
+

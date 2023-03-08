@@ -95,7 +95,6 @@ class DetectFISHSpotsWidget(QWidget):
         groupBox = QGroupBox("Spot Counting")
         formLayout = QVBoxLayout()
         spotLayers = self.napariUtil.getPointsLayers()
-        print("spot layers: ", spotLayers)
         spotsLabel, self.spotsCombo = WidgetTool.getComboInput(self,
                                             "spots: ",
                                             spotLayers)
@@ -150,7 +149,6 @@ class DetectFISHSpotsWidget(QWidget):
             table = {}
             for index, column in enumerate(columns):
                 table[headings[index]] = column
-            print(table)
             tableView = TableView(table)
             self.viewer.window.add_dock_widget(tableView, area='right', name="Nr. Of Spots: " + spotsName, tabify = False)
 
