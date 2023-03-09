@@ -1,6 +1,6 @@
 import pyperclip
 import numpy as np
-from qtpy.QtWidgets import QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem
+from qtpy.QtWidgets import QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem, QAction
 from qtpy.QtCore import Qt
 from napari_bigfish.array_util import ArrayUtil
 
@@ -48,6 +48,10 @@ class TableView(QTableWidget):
         self.setData()
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
+        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        copyAction = QAction("Copy\tCtrl+C", self)
+        copyAction.triggered.connect(self.copyDataToClipboard)
+        self.addAction(copyAction)
 
 
     def setData(self):
@@ -64,9 +68,13 @@ class TableView(QTableWidget):
     def keyPressEvent(self, event):
         super().keyPressEvent(event)
         if event.key() == Qt.Key_C and (event.modifiers() & Qt.ControlModifier):
-            print("copying data to clipboard")
-            tableDataAsText = self.getSelectedDataAsString()
-            pyperclip.copy(tableDataAsText)
+            self.copyDataToClipboard()
+
+
+    def copyDataToClipboard(self):
+        print("copying data to clipboard")
+        tableDataAsText = self.getSelectedDataAsString()
+        pyperclip.copy(tableDataAsText)
 
 
     def getSelectedDataAsString(self):
