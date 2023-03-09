@@ -1,7 +1,8 @@
 import pyperclip
+import numpy as np
 from qtpy.QtWidgets import QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem
 from qtpy.QtCore import Qt
-
+from napari_bigfish.array_util import ArrayUtil
 
 class WidgetTool:
 
@@ -41,7 +42,8 @@ class TableView(QTableWidget):
 
 
     def __init__(self, data, *args):
-        QTableWidget.__init__(self, len(list(data.values())[0]), len(data), *args)
+        QTableWidget.__init__(self, len(list(data.values())[0]),
+                                    len(data), *args)
         self.data = data
         self.setData()
         self.resizeColumnsToContents()
@@ -63,18 +65,22 @@ class TableView(QTableWidget):
         super().keyPressEvent(event)
         if event.key() == Qt.Key_C and (event.modifiers() & Qt.ControlModifier):
             print("copying data to clipboard")
-            copied_cells = self.selectedIndexes()
-            lines = ''
-            lastRow = copied_cells[0].row()
-            for cell in copied_cells:
-                currentRow = cell.row()
-                if lastRow != currentRow:
-                    lines = lines[:-1]
-                    lines = lines + "\n"
-                lastRow = currentRow
-                lines = lines + cell.data() + "\t"
-            if len(lines) > 0:
-                lines = lines[:-1]
-                lines = lines + "\n"
-            pyperclip.copy(lines)
+            tableDataAsText = self.getSelectedDataAsString()
+            pyperclip.copy(tableDataAsText)
 
+
+    def getSelectedDataAsString(self):
+        copied_cells = self.selectedIndexes()
+        labels = [self.horizontalHeaderItem(id).text() for id in range(0, self.columnCount())];
+        data = [['' for i in range(self.columnCount())] for j in range(self.rowCount())]
+        for cell in copied_cells:
+            data[cell.row()][cell.column()] = cell.data()
+        table =  np.array(data)
+        table, columnIndices, _ = ArrayUtil.stripZeroRowsAndColumns(table, zero='')
+        lines = ''
+        for row in table:
+            lines = lines + "\t".join([str(elem) for elem in row]) + "\n"
+        lines = lines[:-1]
+        remainingHeadings = [labels[index] for index in columnIndices]
+        result = "\t".join(remainingHeadings) + "\n" + lines
+        return result
