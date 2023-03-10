@@ -52,6 +52,7 @@ class BigfishApp(QObject):
         else:
             self.spots = detection.detect_spots(
                 self.data,
+                threshold = self.getThreshold(),
                 remove_duplicate = self.shallRemoveDuplicates(),
                 return_threshold = self.shallFindThreshold(),
                 voxel_size = scale,

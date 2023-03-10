@@ -4,17 +4,26 @@ A Widget to run the bigfish FISH-spot detection
 import numpy as np
 from typing import TYPE_CHECKING
 from magicgui import magic_factory
-from napari.utils.events import Event
 from qtpy.QtWidgets import QVBoxLayout, QFormLayout
 from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
 from qtpy.QtCore import Slot
+from napari.qt.threading import thread_worker
 from napari.utils import notifications
+from napari.utils import progress
+from napari.utils.events import Event
 from napari_bigfish.bigfishapp import BigfishApp
 from napari_bigfish.qtutil import WidgetTool, TableView
 from napari_bigfish.napari_util import NapariUtil
 
 if TYPE_CHECKING:
     import napari
+
+@Slot(object)
+def addDetectedSpots(obj):
+    obj.viewer.add_points(obj.model.getSpots(),
+                            name=obj.name,
+                            size=obj.spotDisplaySize,
+                            scale=obj.scale)
 
 
 class DetectFISHSpotsWidget(QWidget):
@@ -36,6 +45,7 @@ class DetectFISHSpotsWidget(QWidget):
         self.addCountSpotsWidget()
         self.viewer.layers.events.inserted.connect(self.onLayerAddedOrRemoved)
         self.viewer.layers.events.removed.connect(self.onLayerAddedOrRemoved)
+
 
     def addSubtractBackgroundWidget(self):
         groupBox = QGroupBox("Background Subtraction")
@@ -153,6 +163,7 @@ class DetectFISHSpotsWidget(QWidget):
             self.viewer.window.add_dock_widget(tableView, area='right', name="Nr. Of Spots: " + spotsName, tabify = False)
 
 
+
     def onClickDetectSpots(self):
         activeLayer = self.viewer.layers.selection.active
         if not activeLayer:
@@ -174,13 +185,17 @@ class DetectFISHSpotsWidget(QWidget):
             data = np.squeeze(data, axis=0)
             scale = scale[1:]
             squeezed = True
+        name = "spots in {image}".format(image=activeLayer.name)
+        self.detectSpots(data, name, scale)
+
+
+    @thread_worker(connect={"returned": addDetectedSpots})
+    def detectSpots(self, data, name, scale):
         self.model.setData(data)
         self.model.detectSpots(tuple(scale))
-        name = "spots in {image}".format(image=activeLayer.name)
-        self.viewer.add_points(self.model.getSpots(),
-                               name=name,
-                               size=self.spotDisplaySize,
-                               scale=scale)
+        self.name = name
+        self.scale = scale
+        return self
 
 
     def onClickSubtractBackground(self):
@@ -223,12 +238,12 @@ class DetectFISHSpotsWidget(QWidget):
 
     @Slot(int)
     def onRemoveDuplicatesChanged(self, state):
-        self.model.removeBackground = (state==1)
+        self.model.removeBackground = (state > 0)
 
 
     @Slot(int)
     def onFindThresholdChanged(self, state):
-        self.model.findThreshold = (state==1)
+        self.model.findThreshold = (state > 0)
 
 
     @Slot(float, float)
