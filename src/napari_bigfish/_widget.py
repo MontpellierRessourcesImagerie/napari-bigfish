@@ -176,11 +176,6 @@ class DetectFISHSpotsWidget(QWidget):
                 self.model.findThreshold))
         data = activeLayer.data
         scale = activeLayer.scale
-        squeezed = False
-        if data.shape[0] == 1:
-            data = np.squeeze(data, axis=0)
-            scale = scale[1:]
-            squeezed = True
         name = "spots in {image}".format(image=activeLayer.name)
         detectSpotsThread = DetectSpotsThread(self.model, data, self.viewer,
                                               name, scale, self.spotDisplaySize)
@@ -204,11 +199,6 @@ class DetectFISHSpotsWidget(QWidget):
             activeLayer.name))
         data = activeLayer.data
         scale = activeLayer.scale
-        squeezed = False
-        if data.shape[0] == 1:
-            data = np.squeeze(data, axis=0)
-            scale = scale[1:]
-            squeezed = True
         sigma = (self.model.getSigmaXY(), self.model.getSigmaXY())
         if data.ndim > 2:
             sigma = (self.model.getSigmaXY(),
@@ -217,8 +207,6 @@ class DetectFISHSpotsWidget(QWidget):
         self.model.setData(data)
         self.model.subtractBackground(sigma)
         cleaned = self.model.getResult()
-        if squeezed:
-            cleaned = np.expand_dims(cleaned, axis=0)
         self.viewer.add_image(cleaned, scale=scale, name=activeLayer.name,
                               colormap=activeLayer.colormap,
                               blending=activeLayer.blending)
@@ -349,6 +337,14 @@ class DetectSpotsThread:
 
 
     def addDetectedSpots(self, data):
+        '''
+        Add the detected spots to the viewer.
+
+        Note that this method needs to bee here and not in the widget, because
+        otherwise different threads would potentially read the same data
+        (name, scale, ...), which might have been modified in the meantime, for
+        example by selecting another input image.
+        '''
         self.viewer.add_points(data,
                                name=self.name,
                                size=self.spotDisplaySize,

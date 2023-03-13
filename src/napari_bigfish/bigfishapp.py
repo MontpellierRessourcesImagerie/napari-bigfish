@@ -35,6 +35,7 @@ class BigfishApp(QObject):
         self.nucleiLabelOfSpot = None
         self.nrOfCells = 0
 
+
     def subtractBackground(self, sigma):
         self.result = stack.remove_background_gaussian(self.data, sigma)
 
