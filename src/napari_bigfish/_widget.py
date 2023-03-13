@@ -1,6 +1,7 @@
 """
 A Widget to run the bigfish FISH-spot detection
 """
+import time
 import numpy as np
 from typing import TYPE_CHECKING
 from magicgui import magic_factory
@@ -8,6 +9,7 @@ from qtpy.QtWidgets import QVBoxLayout, QFormLayout
 from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
 from qtpy.QtCore import Slot
 from napari.qt.threading import thread_worker
+from napari.qt.threading import create_worker
 from napari.utils import notifications
 from napari.utils import progress
 from napari.utils.events import Event
@@ -18,12 +20,6 @@ from napari_bigfish.napari_util import NapariUtil
 if TYPE_CHECKING:
     import napari
 
-@Slot(object)
-def addDetectedSpots(obj):
-    obj.viewer.add_points(obj.model.getSpots(),
-                            name=obj.name,
-                            size=obj.spotDisplaySize,
-                            scale=obj.scale)
 
 
 class DetectFISHSpotsWidget(QWidget):
@@ -186,16 +182,12 @@ class DetectFISHSpotsWidget(QWidget):
             scale = scale[1:]
             squeezed = True
         name = "spots in {image}".format(image=activeLayer.name)
-        self.detectSpots(data, name, scale)
-
-
-    @thread_worker(connect={"returned": addDetectedSpots})
-    def detectSpots(self, data, name, scale):
-        self.model.setData(data)
-        self.model.detectSpots(tuple(scale))
-        self.name = name
-        self.scale = scale
-        return self
+        detectSpotsThread = DetectSpotsThread(self.model, data, self.viewer,
+                                              name, scale, self.spotDisplaySize)
+        progressThread = IndeterminedProgressThread("detecting spots")
+        detectSpotsThread.connectFinished(progressThread.stop)
+        detectSpotsThread.start()
+        progressThread.start()
 
 
     def onClickSubtractBackground(self):
@@ -339,3 +331,63 @@ class DetectFISHSpotsWidget(QWidget):
         spotLayers = self.napariUtil.getPointsLayers()
         for comboBox in spotComboBoxes:
             WidgetTool.replaceItemsInComboBox(comboBox, spotLayers)
+
+
+
+class DetectSpotsThread:
+
+
+    def __init__(self, model, data, viewer, name, scale, spotDisplaySize):
+        self.model = model
+        self.data = data
+        self.name = name
+        self.scale = scale
+        self.viewer = viewer
+        self.worker = create_worker(self.detectSpots)
+        self.worker.returned.connect(self.addDetectedSpots)
+        self.spotDisplaySize = spotDisplaySize
+
+
+    def addDetectedSpots(self, data):
+        self.viewer.add_points(data,
+                               name=self.name,
+                               size=self.spotDisplaySize,
+                               scale=self.scale)
+
+
+    def detectSpots(self):
+        self.model.setData(self.data)
+        self.model.detectSpots(tuple(self.scale))
+        return self.model.getSpots()
+
+
+    def start(self):
+        self.worker.start()
+
+
+    def connectFinished(self, method):
+        self.worker.finished.connect(method)
+
+
+
+class IndeterminedProgressThread:
+
+
+    def __init__(self, description):
+        self.worker = create_worker(self.yieldUndeterminedProgress)
+        self.progress = progress(total=0)
+        self.progress.set_description(description)
+
+
+    def yieldUndeterminedProgress(self):
+        while True:
+            time.sleep(0.05)
+
+
+    def start(self):
+        self.worker.start()
+
+
+    def stop(self):
+        self.progress.close()
+        self.worker.quit()
