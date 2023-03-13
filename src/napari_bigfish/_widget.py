@@ -147,17 +147,14 @@ class DetectFISHSpotsWidget(QWidget):
             nucleiMask = self.napariUtil.getDataOfLayerWithName(nucleiMaskName)
             spots = self.napariUtil.getDataOfLayerWithName(spotsName)
             self.model.spots = spots
-            self.model.countSpotsPerCellAndEnvironment(cytoLabels, nucleiMask)
-            data = self.model.getSpotCountPerCellAndEnvironment()
-            for row in data:
-                row.insert(0, spotsName)
-            columns = list(zip(*data))
-            table = {}
-            for index, column in enumerate(columns):
-                table[headings[index]] = column
-            tableView = TableView(table)
-            self.viewer.window.add_dock_widget(tableView, area='right', name="Nr. Of Spots: " + spotsName, tabify = False)
 
+            countSpotsThread = CountSpotsThread(self.model, spots, spotsName,
+                                                cytoLabels, nucleiMask,
+                                                headings, self.viewer)
+            progressThread = IndeterminedProgressThread("counting spots")
+            countSpotsThread.connectFinished(progressThread.stop)
+            countSpotsThread.start()
+            progressThread.start()
 
 
     def onClickDetectSpots(self):
@@ -202,14 +199,20 @@ class DetectFISHSpotsWidget(QWidget):
         sigma = (self.model.getSigmaXY(), self.model.getSigmaXY())
         if data.ndim > 2:
             sigma = (self.model.getSigmaXY(),
-                    self.model.getSigmaXY(),
-                    self.model.getSigmaZ())
+                     self.model.getSigmaXY(),
+                     self.model.getSigmaZ())
         self.model.setData(data)
-        self.model.subtractBackground(sigma)
-        cleaned = self.model.getResult()
-        self.viewer.add_image(cleaned, scale=scale, name=activeLayer.name,
-                              colormap=activeLayer.colormap,
-                              blending=activeLayer.blending)
+        subtractBackgroundTread = SubtractBackgroundThread(self.model, data,
+                                                           sigma, self.viewer,
+                                                           activeLayer.name,
+                                                           scale,
+                                                           activeLayer.colormap,
+                                                           activeLayer.blending)
+        progressThread = IndeterminedProgressThread("subtracting background")
+        subtractBackgroundTread.connectFinished(progressThread.stop)
+        subtractBackgroundTread.start()
+        progressThread.start()
+
 
 
     def onLayerAddedOrRemoved(self, event: Event):
@@ -321,8 +324,50 @@ class DetectFISHSpotsWidget(QWidget):
             WidgetTool.replaceItemsInComboBox(comboBox, spotLayers)
 
 
+class WorkerThread:
 
-class DetectSpotsThread:
+
+    def start(self):
+        self.worker.start()
+
+
+    def connectFinished(self, method):
+        self.worker.finished.connect(method)
+
+
+
+
+
+class SubtractBackgroundThread(WorkerThread):
+
+
+    def __init__(self, model, data, sigma, viewer, name, scale, colormap, blending):
+        self.model = model
+        self.data = data
+        self.name = name
+        self.scale = scale
+        self.viewer = viewer
+        self.colormap = colormap
+        self.blending = blending
+        self.sigma = sigma
+        self.worker = create_worker(self.removeBackground)
+        self.worker.returned.connect(self.addImage)
+
+
+    def addImage(self, data):
+        self.viewer.add_image(data, scale=self.scale, name=self.name,
+                              colormap=self.colormap,
+                              blending=self.blending)
+
+
+    def removeBackground(self):
+        self.model.setData(self.data)
+        self.model.subtractBackground(self.sigma)
+        return self.model.getResult()
+
+
+
+class DetectSpotsThread(WorkerThread):
 
 
     def __init__(self, model, data, viewer, name, scale, spotDisplaySize):
@@ -357,12 +402,42 @@ class DetectSpotsThread:
         return self.model.getSpots()
 
 
-    def start(self):
-        self.worker.start()
+
+class CountSpotsThread(WorkerThread):
 
 
-    def connectFinished(self, method):
-        self.worker.finished.connect(method)
+    def __init__(self, model, spots, spotsName,
+                       cytoLabels, nucleiMask, headings, viewer):
+        self.model = model
+        self.spots = spots
+        self.spotsName = spotsName
+        self.model.spots = self.spots
+        self.cytoLabels = cytoLabels
+        self.nucleiMask = nucleiMask
+        self.headings = headings
+        self.viewer = viewer
+        self.worker = create_worker(self.countSpots)
+        self.worker.returned.connect(self.addTable)
+
+
+    def addTable(self, tableView):
+        self.viewer.window.add_dock_widget(
+                                    tableView, area='right',
+                                    name="Nr. Of Spots: " + self.spotsName,
+                                    tabify = False)
+
+
+    def countSpots(self):
+        self.model.countSpotsPerCellAndEnvironment(self.cytoLabels,
+                                                   self.nucleiMask)
+        data = self.model.getSpotCountPerCellAndEnvironment()
+        for row in data:
+            row.insert(0, self.spotsName)
+        columns = list(zip(*data))
+        table = {}
+        for index, column in enumerate(columns):
+            table[self.headings[index]] = column
+        return TableView(table)
 
 
 
