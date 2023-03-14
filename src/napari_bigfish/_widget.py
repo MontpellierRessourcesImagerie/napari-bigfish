@@ -147,10 +147,10 @@ class DetectFISHSpotsWidget(QWidget):
             nucleiMask = self.napariUtil.getDataOfLayerWithName(nucleiMaskName)
             spots = self.napariUtil.getDataOfLayerWithName(spotsName)
             self.model.spots = spots
-
-            countSpotsThread = CountSpotsThread(self.model, spots, spotsName,
+            self.spotsName = spotsName
+            countSpotsThread = CountSpotsThread(self.model, self, spots, spotsName,
                                                 cytoLabels, nucleiMask,
-                                                headings, self.viewer)
+                                                headings)
             progressThread = IndeterminedProgressThread("counting spots")
             countSpotsThread.connectFinished(progressThread.stop)
             countSpotsThread.start()
@@ -324,6 +324,15 @@ class DetectFISHSpotsWidget(QWidget):
             WidgetTool.replaceItemsInComboBox(comboBox, spotLayers)
 
 
+    def addSpotCountingTable(self, table):
+        tableView = TableView(table)
+        self.viewer.window.add_dock_widget(
+                                    tableView, area='right',
+                                    name="Nr. Of Spots: " + self.spotsName,
+                                    tabify = False)
+
+
+
 class WorkerThread:
 
 
@@ -406,8 +415,8 @@ class DetectSpotsThread(WorkerThread):
 class CountSpotsThread(WorkerThread):
 
 
-    def __init__(self, model, spots, spotsName,
-                       cytoLabels, nucleiMask, headings, viewer):
+    def __init__(self, model, parent, spots, spotsName,
+                       cytoLabels, nucleiMask, headings):
         self.model = model
         self.spots = spots
         self.spotsName = spotsName
@@ -415,16 +424,8 @@ class CountSpotsThread(WorkerThread):
         self.cytoLabels = cytoLabels
         self.nucleiMask = nucleiMask
         self.headings = headings
-        self.viewer = viewer
         self.worker = create_worker(self.countSpots)
-        self.worker.returned.connect(self.addTable)
-
-
-    def addTable(self, tableView):
-        self.viewer.window.add_dock_widget(
-                                    tableView, area='right',
-                                    name="Nr. Of Spots: " + self.spotsName,
-                                    tabify = False)
+        self.worker.returned.connect(parent.addSpotCountingTable)
 
 
     def countSpots(self):
@@ -437,7 +438,7 @@ class CountSpotsThread(WorkerThread):
         table = {}
         for index, column in enumerate(columns):
             table[self.headings[index]] = column
-        return TableView(table)
+        return table
 
 
 
