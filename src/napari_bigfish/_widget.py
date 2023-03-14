@@ -38,6 +38,8 @@ class DetectFISHSpotsWidget(QWidget):
         self.layout().addSpacing(20)
         self.addDetectSpotsWidget()
         self.layout().addSpacing(20)
+        self.addDecomposeDenseRegionsWidget()
+        self.layout().addSpacing(20)
         self.addCountSpotsWidget()
         self.viewer.layers.events.inserted.connect(self.onLayerAddedOrRemoved)
         self.viewer.layers.events.removed.connect(self.onLayerAddedOrRemoved)
@@ -93,6 +95,44 @@ class DetectFISHSpotsWidget(QWidget):
         verticalLayout.addWidget(self.removeDuplicatesCheckbox)
         verticalLayout.addWidget(self.findThresholdCheckbox)
         verticalLayout.addWidget(detectSpotsButton)
+        groupBox.setLayout(verticalLayout)
+        self.layout().addWidget(groupBox)
+
+
+    def addDecomposeDenseRegionsWidget(self):
+        groupBox = QGroupBox("Decompose Dense Regions")
+        formLayout = QFormLayout()
+        spotLayers = self.napariUtil.getPointsLayers()
+        spotsLabel, self.decomposeSpotsCombo = WidgetTool.getComboInput(self,
+                                            "spots: ",
+                                            spotLayers)
+        radiusXYLabel, self.decomposeRadiusXYInput = \
+         WidgetTool.getLineInput(self, "spot radius xy: ",self.model.getDecomposeRadiusXY(),
+                                 self.fieldWidth, self.updateDecomposeRadiusXY)
+        radiusZLabel, self.decomposeRadiusZInput = \
+         WidgetTool.getLineInput(self, "spot radius z: ",self.model.getDecomposeRadiusZ(),
+                                 self.fieldWidth, self.updateDecomposeRadiusZ)
+        alphaLabel, self.alphaInput = \
+         WidgetTool.getLineInput(self, "alpha: ",self.model.getAlpha(),
+                                 self.fieldWidth, self.updateAlpha)
+        betaLabel, self.betaInput = \
+         WidgetTool.getLineInput(self, "beta: ",self.model.getBeta(),
+                                 self.fieldWidth, self.updateBeta)
+        gammaLabel, self.gammaInput = \
+         WidgetTool.getLineInput(self, "gamma: ",self.model.getGamma(),
+                                 self.fieldWidth, self.updateGamma)
+        decomposeSpotsButton = QPushButton("Decompose Dense Regions")
+        decomposeSpotsButton.setMaximumWidth(self.maxButtonWidth)
+        decomposeSpotsButton.clicked.connect(self.onClickDecomposeDenseRegions)
+        formLayout.addRow(spotsLabel, self.decomposeSpotsCombo)
+        formLayout.addRow(radiusXYLabel, self.decomposeRadiusXYInput)
+        formLayout.addRow(radiusZLabel, self.decomposeRadiusZInput)
+        formLayout.addRow(alphaLabel, self.alphaInput)
+        formLayout.addRow(betaLabel, self.betaInput)
+        formLayout.addRow(gammaLabel, self.gammaInput)
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addLayout(formLayout)
+        verticalLayout.addWidget(decomposeSpotsButton)
         groupBox.setLayout(verticalLayout)
         self.layout().addWidget(groupBox)
 
@@ -155,6 +195,34 @@ class DetectFISHSpotsWidget(QWidget):
             countSpotsThread.connectFinished(progressThread.stop)
             countSpotsThread.start()
             progressThread.start()
+
+
+    def onClickDecomposeDenseRegions(self):
+        activeLayer = self.viewer.layers.selection.active
+        if not activeLayer:
+            notifications.show_error("Decompose dense regions needs an image!")
+            return
+        message = "decomposing dense regions on {} (radius xy={}, radius z={}, alpha={}, beta={}, gamma={})."
+        notifications.show_info(
+            message.format(
+                activeLayer.name,
+                self.model.decomposeRadiusXY,
+                self.model.decomposeRadiusZ,
+                self.model.alpha,
+                self.model.beta,
+                self.model.gamma))
+        data = activeLayer.data
+        scale = activeLayer.scale
+        spotsName = self.decomposeSpotsCombo.currentText()
+        spots = self.napariUtil.getDataOfLayerWithName(spotsName)
+        self.model.spots = spots
+        self.spotsName = spotsName
+        decomposeSpotsThread = DecomposeDenseRegionsThread(self.model, data, self.viewer,
+                                              spotsName, scale, self.spotDisplaySize)
+        progressThread = IndeterminedProgressThread("decomposing dense regions")
+        decomposeSpotsThread.connectFinished(progressThread.stop)
+        decomposeSpotsThread.start()
+        progressThread.start()
 
 
     def onClickDetectSpots(self):
@@ -313,12 +381,67 @@ class DetectFISHSpotsWidget(QWidget):
         return True
 
 
+    @Slot(str)
+    def updateDecomposeRadiusXY(self, text):
+        try:
+            value = float(text)
+        except:
+            self.decomposeRadiusXYInput.setText(str(self.model.getDecomposeRadiusXY()))
+            return False
+        self.model.decomposeRadiusXY = value
+        return True
+
+
+    @Slot(str)
+    def updateDecomposeRadiusZ(self, text):
+        try:
+            value = float(text)
+        except:
+            self.decomposeRadiusZInput.setText(str(self.model.getDecomposeRadiusZ()))
+            return False
+        self.model.decomposeRadiusZ = value
+        return True
+
+
+    @Slot(str)
+    def updateAlpha(self, text):
+        try:
+            value = float(text)
+        except:
+            self.alphaInput.setText(str(self.model.getAlpha()))
+            return False
+        self.model.alpha = value
+        return True
+
+
+    @Slot(str)
+    def updateBeta(self, text):
+        try:
+            value = float(text)
+        except:
+            self.betaInput.setText(str(self.model.getBeta()))
+            return False
+        self.model.beta = value
+        return True
+
+
+    @Slot(str)
+    def updateGamma(self, text):
+        try:
+            value = float(text)
+        except:
+            self.gammaInput.setText(str(self.model.getGamma()))
+            return False
+        self.model.gamma = value
+        return True
+
+
     def updateLayerSelectionComboBoxes(self):
         labelComboBoxes = [self.cytoCombo, self.nucleiCombo]
         labelLayers = self.napariUtil.getLabelLayers()
         for comboBox in labelComboBoxes:
             WidgetTool.replaceItemsInComboBox(comboBox, labelLayers)
-        spotComboBoxes = [self.spotsCombo]
+        spotComboBoxes = [self.spotsCombo, self.decomposeSpotsCombo]
         spotLayers = self.napariUtil.getPointsLayers()
         for comboBox in spotComboBoxes:
             WidgetTool.replaceItemsInComboBox(comboBox, spotLayers)
@@ -385,9 +508,10 @@ class DetectSpotsThread(WorkerThread):
         self.name = name
         self.scale = scale
         self.viewer = viewer
+        self.spotDisplaySize = spotDisplaySize
         self.worker = create_worker(self.detectSpots)
         self.worker.returned.connect(self.addDetectedSpots)
-        self.spotDisplaySize = spotDisplaySize
+
 
 
     def addDetectedSpots(self, data):
@@ -410,6 +534,32 @@ class DetectSpotsThread(WorkerThread):
         self.model.detectSpots(tuple(self.scale))
         return self.model.getSpots()
 
+
+class DecomposeDenseRegionsThread(WorkerThread):
+
+
+    def __init__(self, model, data, viewer, name, scale, spotDisplaySize):
+        self.model = model
+        self.data = data
+        self.name = name
+        self.scale = scale
+        self.viewer = viewer
+        self.spotDisplaySize = spotDisplaySize
+        self.worker = create_worker(self.decompose)
+        self.worker.returned.connect(self.addSpots)
+
+
+    def addSpots(self, data):
+        self.viewer.add_points(data,
+                               name=self.name,
+                               size=self.spotDisplaySize,
+                               scale=self.scale)
+
+
+    def decompose(self):
+         self.model.setData(self.data)
+         self.model.decomposeDenseRegions(tuple(self.scale))
+         return self.model.spots
 
 
 class CountSpotsThread(WorkerThread):

@@ -2,7 +2,9 @@ import pyperclip
 import numpy as np
 from qtpy.QtWidgets import QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem, QAction
 from qtpy.QtCore import Qt
+from napari.utils import notifications
 from napari_bigfish.array_util import ArrayUtil
+
 
 class WidgetTool:
 
@@ -72,7 +74,7 @@ class TableView(QTableWidget):
 
 
     def copyDataToClipboard(self):
-        print("copying data to clipboard")
+        notifications.show_info("copying data to clipboard")
         tableDataAsText = self.getSelectedDataAsString()
         pyperclip.copy(tableDataAsText)
 

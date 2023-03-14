@@ -17,6 +17,10 @@ class BigfishApp(QObject):
     radiusSignal = Signal(float, float)
     removeDuplicatesSignal = Signal(bool)
     findThresholdSignal = Signal(bool)
+    decomposeRadiusSignal = Signal(float, float)
+    alphaSignal = Signal(float)
+    betaSignal = Signal(float)
+    gammaSignal = Signal(float)
 
 
     def __init__(self):
@@ -24,8 +28,13 @@ class BigfishApp(QObject):
         self.sigmaXY = 2.3
         self.sigmaZ = 0.75
         self.threshold = 15
-        self.radiusXY = 340
-        self.radiusZ = 2500
+        self.radiusXY = 170
+        self.radiusZ = 1250
+        self.decomposeRadiusXY = 170
+        self.decomposeRadiusZ = 1250
+        self.alpha = 0.5
+        self.beta = 1
+        self.gamma = 5
         self.removeDuplicates = True
         self.findThreshold = True
         self.data = None
@@ -58,6 +67,18 @@ class BigfishApp(QObject):
                 return_threshold = self.shallFindThreshold(),
                 voxel_size = scale,
                 spot_radius = (self.getRadiusZ(), radiusXY , radiusXY))
+
+
+    def decomposeDenseRegions(self, scale):
+        radiusXY = self.getRadiusXY()
+        self.spots, denseRegions, referenceSpot = detection.decompose_dense(
+            self.data,
+            self.spots,
+            scale,
+            (self.getRadiusZ(), radiusXY , radiusXY),
+            alpha = self.alpha,
+            beta = self.beta,
+            gamma = self.gamma)
 
 
     def countSpotsPerCellAndEnvironment(self, cytoplasmLabels, nucleiLabels):
@@ -126,6 +147,51 @@ class BigfishApp(QObject):
     def setRadiusZ(self, radius):
         self.radiusZ = radius
         self.radiusSignal.emit(self.getRadiusXY(), radius)
+
+
+    def getDecomposeRadiusXY(self):
+        return self.decomposeRadiusXY
+
+
+    def setDecomposeRadiusXY(self, radius):
+        self.decomposeRadiusXY = radius
+        self.decomposeRadiusSignal.emit(radius, self.decomposeRadiusZ)
+
+
+    def getDecomposeRadiusZ(self):
+        return self.decomposeRadiusZ
+
+
+    def setDecomposeRadiusZ(self, radius):
+        self.decomposeRadiusZ = radius
+        self.decomposeRadiusSignal.emit(self.decomposeRadiusXY, radius)
+
+
+    def getAlpha(self):
+        return self.alpha
+
+
+    def setAlpha(self, alpha):
+        self.alpha = alpha
+        self.alphaSignal.emit(alpha)
+
+
+    def getBeta(self):
+        return self.beta
+
+
+    def setBeta(self, beta):
+        self.beta = beta
+        self.betaSignal.emit(beta)
+
+
+    def getGamma(self):
+        return self.gamma
+
+
+    def setGamma(self, gamma):
+        self.gamma = gamma
+        self.gammaSignal.emit(gamma)
 
 
     def setData(self, data):
