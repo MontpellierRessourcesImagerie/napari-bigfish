@@ -1,4 +1,5 @@
 from enum import Enum
+from skimage import io
 from collections import Counter
 from qtpy.QtCore import Signal
 from qtpy.QtCore import QObject
@@ -21,7 +22,7 @@ class BigfishApp(QObject):
     alphaSignal = Signal(float)
     betaSignal = Signal(float)
     gammaSignal = Signal(float)
-
+    progressSignal = Signal(int, int)
 
     def __init__(self):
         super(BigfishApp, self).__init__()
@@ -43,21 +44,85 @@ class BigfishApp(QObject):
         self.cellLabelOfSpot = None
         self.nucleiLabelOfSpot = None
         self.nrOfCells = 0
+        self.progressMax = 0
+        self.progress = 0
 
 
-    def subtractBackground(self, sigma):
+    def runBatch(self, scale, inputImages, cellLabels=None, nucleiMasks=None,
+                       subtractBackground=False, decomposeDenseRegions=False):
+        self.setProgressMax = len(inputImages)
+        for index, inputImagePath in enumerate(inputImages):
+            self.data = io.imread(inputImagePath)
+            if subtractBackground:
+                self.subtractBackground()
+                self.data = self.getResult()
+            self.detectSpots(scale)
+            if decomposeDenseRegions:
+                self.decomposeDenseRegions(scale)
+            self.reportSpots(inputImagePath)
+            cellLabelData = None
+            if cellLabels:
+                cellLabelData = io.imread(cellLabels[index])
+            nucleiLabelData = None
+            if nucleiMasks:
+                nucleiMasksData = io.imread(nucleiMasks[index])
+            self.countSpotsPerCellAndEnvironment(cellLabelData, nucleiMasksData)
+            self.reportSpotCounts(inputImagePath)
+            self.setProgress(index+1)
+
+
+    def setProgressMax(self, max):
+        self.progressMax = max
+        self.progress = 0
+        self.progressSignal.emit(self.progress, self.progressMax)
+
+
+    def setProgress(self, progress):
+        self.progress = progress
+        self.progressSignal.emit(self.progress, self.progressMax)
+
+
+    def reportSpots(self, inputPath):
+        pass
+
+
+    def reportSpotCounts(self, inputPath):
+        pass
+
+
+    def getSpotRadius(self):
+        spotRadius = (self.getRadiusXY(), self.getRadiusXY())
+        if self.data.ndim > 2:
+            spotRadius = (self.getRadiusZ(), self.getRadiusXY(),
+                          self.getRadiusXY())
+        return spotRadius
+
+
+    def getDecomposeSpotRadius(self):
+        decomposeSpotRadius = (self.getDecomposeRadiusXY(),
+                               self.getDecomposeRadiusXY())
+        if self.data.ndim > 2:
+            decomposeSpotRadius = (self.getDecomposeRadiusZ(),
+                                   self.getDecomposeRadiusXY(),
+                                   self.getDecomposeRadiusXY())
+        return decomposeSpotRadius
+
+
+    def subtractBackground(self):
+        sigma = (self.getSigmaXY(), self.getSigmaXY())
+        if self.data.ndim > 2:
+            sigma = (self.getSigmaZ(), self.getSigmaXY(), self.getSigmaXY())
         self.result = stack.remove_background_gaussian(self.data, sigma)
 
 
     def detectSpots(self, scale):
-        radiusXY = self.getRadiusXY()
         if self.findThreshold:
             self.spots, threshold = detection.detect_spots(
                 self.data,
                 remove_duplicate = self.shallRemoveDuplicates(),
                 return_threshold = self.shallFindThreshold(),
                 voxel_size = scale,
-                spot_radius = (self.getRadiusZ(), radiusXY , radiusXY))
+                spot_radius = self.getSpotRadius())
             self.setThreshold(threshold)
         else:
             self.spots = detection.detect_spots(
@@ -66,16 +131,15 @@ class BigfishApp(QObject):
                 remove_duplicate = self.shallRemoveDuplicates(),
                 return_threshold = self.shallFindThreshold(),
                 voxel_size = scale,
-                spot_radius = (self.getRadiusZ(), radiusXY , radiusXY))
+                spot_radius = self.getSpotRadius())
 
 
     def decomposeDenseRegions(self, scale):
-        radiusXY = self.getRadiusXY()
         self.spots, denseRegions, referenceSpot = detection.decompose_dense(
             self.data,
             self.spots,
             scale,
-            (self.getRadiusZ(), radiusXY , radiusXY),
+            self.getDecomposeSpotRadius(),
             alpha = self.alpha,
             beta = self.beta,
             gamma = self.gamma)

@@ -5,8 +5,10 @@ import time
 import numpy as np
 from typing import TYPE_CHECKING
 from magicgui import magic_factory
-from qtpy.QtWidgets import QVBoxLayout, QFormLayout
+from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QFormLayout, QListView
 from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
+from qtpy.QtWidgets import QFileDialog
+from qtpy.QtGui import QStandardItemModel, QStandardItem
 from qtpy.QtCore import Slot
 from napari.qt.threading import thread_worker
 from napari.qt.threading import create_worker
@@ -16,10 +18,14 @@ from napari.utils.events import Event
 from napari_bigfish.bigfishapp import BigfishApp
 from napari_bigfish.qtutil import WidgetTool, TableView
 from napari_bigfish.napari_util import NapariUtil
-
 if TYPE_CHECKING:
     import napari
 
+
+FIELD_WIDTH = 50
+MAX_BUTTON_WIDTH = 200
+SPOT_DISPLAY_SIZE = 5
+SPACING = 20
 
 
 class DetectFISHSpotsWidget(QWidget):
@@ -30,17 +36,19 @@ class DetectFISHSpotsWidget(QWidget):
         self.setModel(BigfishApp())
         self.viewer = napari_viewer
         self.napariUtil = NapariUtil(self.viewer)
-        self.fieldWidth = 50
-        self.maxButtonWidth = 200
-        self.spotDisplaySize = 5
+        self.fieldWidth = FIELD_WIDTH
+        self.maxButtonWidth = MAX_BUTTON_WIDTH
+        self.spotDisplaySize = SPOT_DISPLAY_SIZE
         self.setLayout(QVBoxLayout())
         self.addSubtractBackgroundWidget()
-        self.layout().addSpacing(20)
+        self.layout().addSpacing(SPACING)
         self.addDetectSpotsWidget()
-        self.layout().addSpacing(20)
+        self.layout().addSpacing(SPACING)
         self.addDecomposeDenseRegionsWidget()
-        self.layout().addSpacing(20)
+        self.layout().addSpacing(SPACING)
         self.addCountSpotsWidget()
+        self.layout().addSpacing(SPACING)
+        self.addBatchButton()
         self.viewer.layers.events.inserted.connect(self.onLayerAddedOrRemoved)
         self.viewer.layers.events.removed.connect(self.onLayerAddedOrRemoved)
 
@@ -166,6 +174,15 @@ class DetectFISHSpotsWidget(QWidget):
         groupBox.setLayout(verticalLayout)
         self.layout().addWidget(groupBox)
 
+    def addBatchButton(self):
+        layout = QHBoxLayout()
+        batchButton = QPushButton("Run Batch")
+        batchButton.setMaximumWidth(self.maxButtonWidth)
+        batchButton.clicked.connect(self.onClickBatch)
+        layout.addWidget(batchButton)
+        self.layout().addLayout(layout)
+
+
 
     def setModel(self, aModel):
         self.model = aModel
@@ -174,6 +191,16 @@ class DetectFISHSpotsWidget(QWidget):
         self.model.radiusSignal.connect(self.radiusChanged)
         self.model.removeDuplicatesSignal.connect(self.removeDuplicatesChanged)
         self.model.findThresholdSignal.connect(self.findThresholdChanged)
+
+
+    def onClickBatch(self):
+        print("Batch running...")
+        self.viewer.window.remove_dock_widget(self)
+        batchWidget = DetectFISHSpotsBatchWidget(self.viewer, self.model)
+        self.viewer.window.add_dock_widget(
+                                    batchWidget, area='right',
+                                    name="Bigfish Batch Processing",
+                                    tabify = False)
 
 
     def onClickCountSpots(self):
@@ -264,14 +291,9 @@ class DetectFISHSpotsWidget(QWidget):
             activeLayer.name))
         data = activeLayer.data
         scale = activeLayer.scale
-        sigma = (self.model.getSigmaXY(), self.model.getSigmaXY())
-        if data.ndim > 2:
-            sigma = (self.model.getSigmaXY(),
-                     self.model.getSigmaXY(),
-                     self.model.getSigmaZ())
         self.model.setData(data)
         subtractBackgroundTread = SubtractBackgroundThread(self.model, data,
-                                                           sigma, self.viewer,
+                                                           self.viewer,
                                                            activeLayer.name,
                                                            scale,
                                                            activeLayer.colormap,
@@ -473,7 +495,7 @@ class WorkerThread:
 class SubtractBackgroundThread(WorkerThread):
 
 
-    def __init__(self, model, data, sigma, viewer, name, scale, colormap, blending):
+    def __init__(self, model, data, viewer, name, scale, colormap, blending):
         self.model = model
         self.data = data
         self.name = name
@@ -481,7 +503,6 @@ class SubtractBackgroundThread(WorkerThread):
         self.viewer = viewer
         self.colormap = colormap
         self.blending = blending
-        self.sigma = sigma
         self.worker = create_worker(self.removeBackground)
         self.worker.returned.connect(self.addImage)
 
@@ -494,7 +515,7 @@ class SubtractBackgroundThread(WorkerThread):
 
     def removeBackground(self):
         self.model.setData(self.data)
-        self.model.subtractBackground(self.sigma)
+        self.model.subtractBackground()
         return self.model.getResult()
 
 
@@ -613,3 +634,146 @@ class IndeterminedProgressThread:
     def stop(self):
         self.progress.close()
         self.worker.quit()
+
+
+
+class DetectFISHSpotsBatchWidget(QWidget):
+
+
+    def __init__(self, napari_viewer, model):
+        super().__init__()
+
+        self.scaleXY = 300
+        self.scaleZ = 900
+        self.subtractBackground = False
+        self.decomposeDenseRegions = False
+        self.setModel(model)
+        self.viewer = napari_viewer
+        self.fieldWidth = FIELD_WIDTH
+        self.maxButtonWidth = MAX_BUTTON_WIDTH
+        self.spotDisplaySize = SPOT_DISPLAY_SIZE
+        self.setLayout(QVBoxLayout())
+        self.addBatchParameterWidget()
+        self.layout().addSpacing(SPACING)
+        self.addInputImagesWidget()
+
+
+    def setModel(self, aModel):
+        self.model = aModel
+
+
+    def addBatchParameterWidget(self):
+        groupBox = QGroupBox("Parameters")
+        formLayout = QFormLayout()
+        scaleXYLabel, self.scaleXYInput = \
+         WidgetTool.getLineInput(self, "scale xy [nm]: ",
+                                       self.scaleXY,
+                                       self.fieldWidth,
+                                       self.updateScaleXY)
+        scaleZLabel, self.scaleZInput = \
+         WidgetTool.getLineInput(self, "scale z [nm]: ",
+                                       self.scaleZ,
+                                       self.fieldWidth,
+                                       self.updateScaleZ)
+        self.subtractBackgroundCheckbox = QCheckBox("subtract background")
+        self.subtractBackgroundCheckbox.setChecked(self.subtractBackground)
+        self.subtractBackgroundCheckbox.stateChanged.connect(self.onSubtractBackgroundChanged)
+
+        self.decomposeDenseRegionsCheckbox = QCheckBox("decompose dense regions")
+        self.decomposeDenseRegionsCheckbox.setChecked(self.decomposeDenseRegions)
+        self.decomposeDenseRegionsCheckbox.stateChanged.connect(self.onDecomposeChanged)
+
+        formLayout.addRow(scaleXYLabel, self.scaleXYInput)
+        formLayout.addRow(scaleZLabel, self.scaleZInput)
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addLayout(formLayout)
+        verticalLayout.addWidget(self.subtractBackgroundCheckbox)
+        verticalLayout.addWidget(self.decomposeDenseRegionsCheckbox)
+
+        groupBox.setLayout(verticalLayout)
+        self.layout().addWidget(groupBox)
+
+
+    def addInputImagesWidget(self):
+        groupBox = QGroupBox("Images And Labels")
+        inputImageListWidget = ImageListWidget("Input Images")
+        verticalLayout = QVBoxLayout()
+        verticalLayout.addWidget(inputImageListWidget)
+        groupBox.setLayout(verticalLayout)
+        self.layout().addWidget(groupBox)
+
+
+    @Slot(str)
+    def updateScaleXY(self, text):
+        try:
+            value = float(text)
+        except:
+            self.scaleXYInput.setText(str(self.scaleXY))
+            return False
+        self.scaleXY = value
+        return True
+
+
+    @Slot(str)
+    def updateScaleZ(self, text):
+        try:
+            value = float(text)
+        except:
+            self.scaleZInput.setText(str(self.scaleZ))
+            return False
+        self.scaleZ = value
+        return True
+
+
+    @Slot(int)
+    def onSubtractBackgroundChanged(self, state):
+        self.subtractBackground = (state > 0)
+
+
+    @Slot(int)
+    def onDecomposeChanged(self, state):
+        self.decomposeDenseRegions = (state > 0)
+
+
+    def inputImagesChanged(self, value):
+        print("input images changed")
+
+
+class ImageListWidget(QWidget):
+
+
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+        self.setLayout(QVBoxLayout())
+        self.fieldWidth = FIELD_WIDTH
+        self.maxButtonWidth = MAX_BUTTON_WIDTH
+        self.addImageListWidget()
+
+
+    def addImageListWidget(self):
+        groupBox = QGroupBox(self.name)
+        self.listView = QListView()
+        self.listView.setMinimumSize(200,200)
+        self.model = QStandardItemModel(self.listView)
+        self.listView.setModel(self.model)
+        self.addFilesButton = QPushButton("Add Files")
+        self.addFilesButton.setMaximumWidth(self.maxButtonWidth)
+        self.addFilesButton.clicked.connect(self.onClickAddFiles)
+        verticalLayout = QVBoxLayout()
+        horizontalLayout = QHBoxLayout()
+        horizontalLayout.addWidget(self.listView)
+        verticalLayout.addLayout(horizontalLayout)
+        horizontalLayoutButtons = QHBoxLayout()
+        horizontalLayoutButtons.addWidget(self.addFilesButton)
+        verticalLayout.addLayout(horizontalLayoutButtons)
+        groupBox.setLayout(verticalLayout)
+        self.layout().addWidget(groupBox)
+
+
+    def onClickAddFiles(self):
+        files = QFileDialog.getOpenFileNames(
+                        self,
+                        "Select one or more files to open",
+                        "/home",
+                        "Images (*.tif *.tiff *.jpg)")
