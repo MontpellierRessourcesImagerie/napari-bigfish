@@ -63,7 +63,7 @@ class BigfishApp(QObject):
             cellLabelData = None
             if cellLabels:
                 cellLabelData = io.imread(cellLabels[index])
-            nucleiLabelData = None
+            nucleiMaskData = None
             if nucleiMasks:
                 nucleiMasksData = io.imread(nucleiMasks[index])
             self.countSpotsPerCellAndEnvironment(cellLabelData, nucleiMasksData)
@@ -98,6 +98,12 @@ class BigfishApp(QObject):
         return spotRadius
 
 
+    def getScale(self, scale):
+        if self.data.ndim == 3 or len(scale) == self.data.ndim:
+            return scale
+        return (scale[1], scale[2])
+
+
     def getDecomposeSpotRadius(self):
         decomposeSpotRadius = (self.getDecomposeRadiusXY(),
                                self.getDecomposeRadiusXY())
@@ -121,7 +127,7 @@ class BigfishApp(QObject):
                 self.data,
                 remove_duplicate = self.shallRemoveDuplicates(),
                 return_threshold = self.shallFindThreshold(),
-                voxel_size = scale,
+                voxel_size = self.getScale(scale),
                 spot_radius = self.getSpotRadius())
             self.setThreshold(threshold)
         else:
@@ -130,7 +136,7 @@ class BigfishApp(QObject):
                 threshold = self.getThreshold(),
                 remove_duplicate = self.shallRemoveDuplicates(),
                 return_threshold = self.shallFindThreshold(),
-                voxel_size = scale,
+                voxel_size = self.getScale(scale),
                 spot_radius = self.getSpotRadius())
 
 
@@ -138,7 +144,7 @@ class BigfishApp(QObject):
         self.spots, denseRegions, referenceSpot = detection.decompose_dense(
             self.data,
             self.spots,
-            scale,
+            self.getScale(scale),
             self.getDecomposeSpotRadius(),
             alpha = self.alpha,
             beta = self.beta,

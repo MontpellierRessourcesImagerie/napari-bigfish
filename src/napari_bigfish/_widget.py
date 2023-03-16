@@ -3,12 +3,14 @@ A Widget to run the bigfish FISH-spot detection
 """
 import time
 import numpy as np
+from pathlib import Path
 from typing import TYPE_CHECKING
 from magicgui import magic_factory
-from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QFormLayout, QListView
+from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QFormLayout, QListView, QAbstractItemView
 from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
-from qtpy.QtWidgets import QFileDialog
-from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtWidgets import QFileDialog, QAction
+from qtpy.QtCore import Qt
+from qtpy.QtGui import QStandardItemModel, QStandardItem, QKeySequence
 from qtpy.QtCore import Slot
 from napari.qt.threading import thread_worker
 from napari.qt.threading import create_worker
@@ -18,14 +20,20 @@ from napari.utils.events import Event
 from napari_bigfish.bigfishapp import BigfishApp
 from napari_bigfish.qtutil import WidgetTool, TableView
 from napari_bigfish.napari_util import NapariUtil
+
+
 if TYPE_CHECKING:
     import napari
 
 
 FIELD_WIDTH = 50
 MAX_BUTTON_WIDTH = 200
+MIN_LIST_WIDTH = 200
+MIN_LIST_HEIGHT = 100
 SPOT_DISPLAY_SIZE = 5
 SPACING = 20
+FILE_EXTENSIONS = ['*.tif', '*.tiff', '*.jpg']
+
 
 
 class DetectFISHSpotsWidget(QWidget):
@@ -612,6 +620,47 @@ class CountSpotsThread(WorkerThread):
         return table
 
 
+class BatchCountSpotsThread(WorkerThread):
+
+
+    def __init__(self, scale, model, inputImages, cellLabels, nucleiMasks,
+                 subtractBackground=False, decomposeDenseRegions=False):
+        self.scale = scale
+        self.model = model
+        self.inputImages = inputImages
+        self.cellLabels = cellLabels
+        self.nucleiMasks = nucleiMasks
+        self.subtractBackground = subtractBackground
+        self.decomposeDenseRegions = decomposeDenseRegions
+        self.model.progressSignal.connect(self.progressChanged, Qt.QueuedConnection)
+        self.progress(total=len(inputImages))
+        self.progress.setDescription("Starting bigfish batch processing")
+        self.worker = create_worker(self.batchCountSpots)
+        self.worker.returned.connect(self.batchFinished)
+
+
+    def batchFinished(self):
+        notifications.show_info("Bigfish batch processing finished!")
+
+
+    def batchCountSpot(self):
+            self.model.runBatch(
+                            self.scale,
+                            self.inputImages,
+                            self.cellLabels,
+                            self.nucleiMasks,
+                            subtractBackground = self.subtractBackground,
+                            decomposeDenseRegions= self.decomposeDenseRegions)
+
+
+    @Slot(int, int)
+    def progressChanged(self, progress, maxProgress):
+        self.progress.moveto(progress)
+        self.progress.setDescription("Processing image {} of {}".format(
+                                                                progress,
+                                                                maxProgress))
+
+
 
 class IndeterminedProgressThread:
 
@@ -656,6 +705,8 @@ class DetectFISHSpotsBatchWidget(QWidget):
         self.addBatchParameterWidget()
         self.layout().addSpacing(SPACING)
         self.addInputImagesWidget()
+        self.layout().addSpacing(SPACING)
+        self.addRunButton()
 
 
     def setModel(self, aModel):
@@ -696,11 +747,24 @@ class DetectFISHSpotsBatchWidget(QWidget):
 
     def addInputImagesWidget(self):
         groupBox = QGroupBox("Images And Labels")
-        inputImageListWidget = ImageListWidget("Input Images")
+        self.inputImageListWidget = ImageListWidget("Input Images")
+        self.cellLabelsListWidget = ImageListWidget("Cell Label Images")
+        self.nucleiMasksListWidget = ImageListWidget("Nuclei Mask Images")
         verticalLayout = QVBoxLayout()
-        verticalLayout.addWidget(inputImageListWidget)
+        verticalLayout.addWidget(self.inputImageListWidget)
+        verticalLayout.addWidget(self.cellLabelsListWidget)
+        verticalLayout.addWidget(self.nucleiMasksListWidget)
         groupBox.setLayout(verticalLayout)
         self.layout().addWidget(groupBox)
+
+
+    def addRunButton(self):
+        runBatchButton = QPushButton("Run")
+        runBatchButton.setMaximumWidth(self.maxButtonWidth)
+        runBatchButton.clicked.connect(self.runBatch)
+        horizontalLayout = QHBoxLayout()
+        horizontalLayout.addWidget(runBatchButton)
+        self.layout().addLayout(horizontalLayout)
 
 
     @Slot(str)
@@ -735,8 +799,26 @@ class DetectFISHSpotsBatchWidget(QWidget):
         self.decomposeDenseRegions = (state > 0)
 
 
-    def inputImagesChanged(self, value):
-        print("input images changed")
+    def runBatch(self):
+        print("batch processing started...")
+        scale = (self.scaleZ, self.scaleXY, self.scaleXY)
+        inputImages = self.inputImageListWidget.getValues()
+        cellLabels = self.cellLabelsListWidget.getValues()
+        nucleiMasks = self.nucleiMasksListWidget.getValues()
+        if not cellLabels:
+            cellLabels = None
+        if not nucleiMasks:
+            nucleiMasks = None
+        self.batchThread = BatchCountSpotsThread(
+                            scale,
+                            self.model,
+                            inputImages,
+                            cellLabels = cellLabels,
+                            nucleiMasks = nucleiMasks,
+                            subtractBackground = self.subtractBackground,
+                            decomposeDenseRegions = self.decomposeDenseRegions)
+        self.batchThread.start()
+
 
 
 class ImageListWidget(QWidget):
@@ -744,36 +826,79 @@ class ImageListWidget(QWidget):
 
     def __init__(self, name):
         super().__init__()
+        self.minWidth = MIN_LIST_WIDTH
+        self.minHeight = MIN_LIST_HEIGHT
         self.name = name
         self.setLayout(QVBoxLayout())
         self.fieldWidth = FIELD_WIDTH
         self.maxButtonWidth = MAX_BUTTON_WIDTH
         self.addImageListWidget()
+        self.currentFolder = str(Path.home())
+
+
+    def getFileExtensions(self):
+        return " ".join(FILE_EXTENSIONS)
 
 
     def addImageListWidget(self):
         groupBox = QGroupBox(self.name)
         self.listView = QListView()
-        self.listView.setMinimumSize(200,200)
+        self.listView.setMinimumSize(self.minWidth, self.minHeight)
+
+        self.listView.setContextMenuPolicy(Qt.ActionsContextMenu)
+        copyAction = QAction("Remove\tDel", self)
+        copyAction.setShortcut(QKeySequence(QKeySequence.Delete))
+        copyAction.triggered.connect(self.deleteSelection)
+        self.listView.addAction(copyAction)
+        self.listView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.model = QStandardItemModel(self.listView)
         self.listView.setModel(self.model)
         self.addFilesButton = QPushButton("Add Files")
         self.addFilesButton.setMaximumWidth(self.maxButtonWidth)
         self.addFilesButton.clicked.connect(self.onClickAddFiles)
+        self.clearFilesButton = QPushButton("Clear")
+        self.clearFilesButton.setMaximumWidth(self.maxButtonWidth)
+        self.clearFilesButton.clicked.connect(self.onClickClearFiles)
         verticalLayout = QVBoxLayout()
         horizontalLayout = QHBoxLayout()
         horizontalLayout.addWidget(self.listView)
         verticalLayout.addLayout(horizontalLayout)
         horizontalLayoutButtons = QHBoxLayout()
         horizontalLayoutButtons.addWidget(self.addFilesButton)
+        horizontalLayoutButtons.addWidget(self.clearFilesButton)
         verticalLayout.addLayout(horizontalLayoutButtons)
         groupBox.setLayout(verticalLayout)
         self.layout().addWidget(groupBox)
 
 
     def onClickAddFiles(self):
-        files = QFileDialog.getOpenFileNames(
+        files, _ = QFileDialog.getOpenFileNames(
                         self,
                         "Select one or more files to open",
-                        "/home",
-                        "Images (*.tif *.tiff *.jpg)")
+                        self.currentFolder,
+                        "Images ("+self.getFileExtensions()+")")
+        self.currentFolder = str(Path(files[0]).parent)
+        files.sort()
+        for file in files:
+           self.model.appendRow(QStandardItem(file))
+
+
+    def onClickClearFiles(self):
+        self.model.clear()
+
+
+    def deleteSelection(self):
+        ranges = self.listView.selectionModel().selection()
+        for range in ranges:
+            self.listView.model().removeRows(range.top(), range.height())
+
+
+    def getValues(self):
+        model = self.listView.model()
+        values = []
+        for row in range(0, model.rowCount()):
+            for column in range(0, model.columnCount()):
+                values.append(str(model.item(column, row)))
+        print("values:")
+        print(values)
+        return values
