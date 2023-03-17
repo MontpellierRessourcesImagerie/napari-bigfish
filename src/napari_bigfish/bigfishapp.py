@@ -50,7 +50,7 @@ class BigfishApp(QObject):
 
     def runBatch(self, scale, inputImages, cellLabels=None, nucleiMasks=None,
                        subtractBackground=False, decomposeDenseRegions=False):
-        self.setProgressMax = len(inputImages)
+        self.setProgressMax(len(inputImages))
         for index, inputImagePath in enumerate(inputImages):
             self.data = io.imread(inputImagePath)
             if subtractBackground:

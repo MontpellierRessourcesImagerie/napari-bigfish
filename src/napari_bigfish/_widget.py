@@ -11,7 +11,7 @@ from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
 from qtpy.QtWidgets import QFileDialog, QAction
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QStandardItemModel, QStandardItem, QKeySequence
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Slot, QObject
 from napari.qt.threading import thread_worker
 from napari.qt.threading import create_worker
 from napari.utils import notifications
@@ -182,6 +182,7 @@ class DetectFISHSpotsWidget(QWidget):
         groupBox.setLayout(verticalLayout)
         self.layout().addWidget(groupBox)
 
+
     def addBatchButton(self):
         layout = QHBoxLayout()
         batchButton = QPushButton("Run Batch")
@@ -189,7 +190,6 @@ class DetectFISHSpotsWidget(QWidget):
         batchButton.clicked.connect(self.onClickBatch)
         layout.addWidget(batchButton)
         self.layout().addLayout(layout)
-
 
 
     def setModel(self, aModel):
@@ -632,18 +632,15 @@ class BatchCountSpotsThread(WorkerThread):
         self.nucleiMasks = nucleiMasks
         self.subtractBackground = subtractBackground
         self.decomposeDenseRegions = decomposeDenseRegions
-        self.model.progressSignal.connect(self.progressChanged, Qt.QueuedConnection)
-        self.progress(total=len(inputImages))
-        self.progress.setDescription("Starting bigfish batch processing")
         self.worker = create_worker(self.batchCountSpots)
-        self.worker.returned.connect(self.batchFinished)
 
+        # self.progress = Progress(len(self.inputImages), "Big Fish Batch Processing Started")
 
     def batchFinished(self):
         notifications.show_info("Bigfish batch processing finished!")
 
 
-    def batchCountSpot(self):
+    def batchCountSpots(self):
             self.model.runBatch(
                             self.scale,
                             self.inputImages,
@@ -651,14 +648,30 @@ class BatchCountSpotsThread(WorkerThread):
                             self.nucleiMasks,
                             subtractBackground = self.subtractBackground,
                             decomposeDenseRegions= self.decomposeDenseRegions)
+            return self
+
+
+
+class Progress(QObject):
+
+
+    def __init__(self, parent, maxProgress, description):
+        super().__init__(parent)
+        self.progress = progress(total=maxProgress)
+        self.progress.set_description(description)
 
 
     @Slot(int, int)
-    def progressChanged(self, progress, maxProgress):
-        self.progress.moveto(progress)
-        self.progress.setDescription("Processing image {} of {}".format(
-                                                                progress,
+    def progressChanged(self, value, maxProgress):
+        self.progress.update(value)
+        self.progress.set_description("Processing image {} of {}".format(
+                                                                value,
                                                                 maxProgress))
+        return True
+
+
+    def processFinished(self):
+        self.progress.close()
 
 
 
@@ -799,6 +812,11 @@ class DetectFISHSpotsBatchWidget(QWidget):
         self.decomposeDenseRegions = (state > 0)
 
 
+    @Slot(int, int)
+    def testProgress(self, p, m):
+        print("testProgress:", p, m)
+
+
     def runBatch(self):
         print("batch processing started...")
         scale = (self.scaleZ, self.scaleXY, self.scaleXY)
@@ -817,6 +835,9 @@ class DetectFISHSpotsBatchWidget(QWidget):
                             nucleiMasks = nucleiMasks,
                             subtractBackground = self.subtractBackground,
                             decomposeDenseRegions = self.decomposeDenseRegions)
+        progress = Progress(self, len(inputImages), "Big Fish Batch Processing Started")
+        self.model.progressSignal.connect(progress.progressChanged)
+        self.batchThread.worker.returned.connect(progress.processFinished)
         self.batchThread.start()
 
 
@@ -897,8 +918,7 @@ class ImageListWidget(QWidget):
         model = self.listView.model()
         values = []
         for row in range(0, model.rowCount()):
-            for column in range(0, model.columnCount()):
-                values.append(str(model.item(column, row)))
-        print("values:")
-        print(values)
+            item = model.item(row, 0)
+            if item:
+                values.append(item.text())
         return values
