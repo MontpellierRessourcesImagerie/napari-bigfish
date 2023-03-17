@@ -1,3 +1,5 @@
+from pathlib import Path
+import os
 from enum import Enum
 from skimage import io
 from collections import Counter
@@ -83,7 +85,16 @@ class BigfishApp(QObject):
 
 
     def reportSpots(self, inputPath):
-        pass
+        print("type: ", type(inputPath))
+        print("report spots {}".format(inputPath))
+        path = Path(inputPath)
+        inFolder, filename = os.path.split(path)
+        outname, _ = os.path.splitext(filename)
+        outname = outname + ".csv"
+        inFolder = path.parent
+        outFolder = os.path.join(inFolder, "spots")
+        if not os.path.exists(outFolder):
+            os.makedirs(outFolder)
 
 
     def reportSpotCounts(self, inputPath):

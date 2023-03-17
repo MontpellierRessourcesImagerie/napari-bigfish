@@ -3,6 +3,7 @@ A Widget to run the bigfish FISH-spot detection
 """
 import time
 import numpy as np
+import napari
 from pathlib import Path
 from typing import TYPE_CHECKING
 from magicgui import magic_factory
@@ -202,7 +203,6 @@ class DetectFISHSpotsWidget(QWidget):
 
 
     def onClickBatch(self):
-        print("Batch running...")
         self.viewer.window.remove_dock_widget(self)
         batchWidget = DetectFISHSpotsBatchWidget(self.viewer, self.model)
         self.viewer.window.add_dock_widget(
@@ -711,6 +711,12 @@ class DetectFISHSpotsBatchWidget(QWidget):
         self.decomposeDenseRegions = False
         self.setModel(model)
         self.viewer = napari_viewer
+        activeLayer = self.viewer.layers.selection.active
+        if activeLayer:
+            self.scaleXY = activeLayer.scale[-1]
+            if activeLayer.data.ndim > 2:
+                self.scaleZ = activeLayer.scale[-3]
+        self.viewer.layers.events.inserted.connect(self.onLayerLoaded) # better use layer.events.loaded
         self.fieldWidth = FIELD_WIDTH
         self.maxButtonWidth = MAX_BUTTON_WIDTH
         self.spotDisplaySize = SPOT_DISPLAY_SIZE
@@ -720,6 +726,16 @@ class DetectFISHSpotsBatchWidget(QWidget):
         self.addInputImagesWidget()
         self.layout().addSpacing(SPACING)
         self.addRunButton()
+
+
+    def onLayerLoaded(self, event):
+        layers = event.source
+        for layer in layers:
+            if isinstance(layer, napari.layers.points.points.Points):
+                scale = (self.scaleXY, self.scaleXY)
+                if layer.ndim > 2:
+                    scale = (self.scaleZ, self.scaleXY, self.scaleXY)
+                layer.scale = scale
 
 
     def setModel(self, aModel):
@@ -812,13 +828,7 @@ class DetectFISHSpotsBatchWidget(QWidget):
         self.decomposeDenseRegions = (state > 0)
 
 
-    @Slot(int, int)
-    def testProgress(self, p, m):
-        print("testProgress:", p, m)
-
-
     def runBatch(self):
-        print("batch processing started...")
         scale = (self.scaleZ, self.scaleXY, self.scaleXY)
         inputImages = self.inputImageListWidget.getValues()
         cellLabels = self.cellLabelsListWidget.getValues()
