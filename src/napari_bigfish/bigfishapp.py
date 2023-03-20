@@ -85,8 +85,6 @@ class BigfishApp(QObject):
 
 
     def reportSpots(self, inputPath):
-        print("type: ", type(inputPath))
-        print("report spots {}".format(inputPath))
         path = Path(inputPath)
         inFolder, filename = os.path.split(path)
         outname, _ = os.path.splitext(filename)
@@ -95,10 +93,33 @@ class BigfishApp(QObject):
         outFolder = os.path.join(inFolder, "spots")
         if not os.path.exists(outFolder):
             os.makedirs(outFolder)
+        outPath = os.path.join(outFolder, outname)
+        with open(outPath, 'w') as f:
+            line = "index,axis-0,axis-1,axis-2"
+            f.write(line)
+            f.write('\n')
+            for index, spot in enumerate(self.spots, start=1):
+                line = str(index) + "," + ",".join([str(coord) for coord in spot])
+                f.write(line)
+                f.write('\n')
 
 
     def reportSpotCounts(self, inputPath):
-        pass
+        path = Path(inputPath)
+        inFolder, filename = os.path.split(path)
+        outname, _ = os.path.splitext(filename)
+        outname = outname + "-count.csv"
+        inFolder = path.parent
+        outFolder = os.path.join(inFolder, "results")
+        if not os.path.exists(outFolder):
+            os.makedirs(outFolder)
+        outPath = os.path.join(outFolder, outname)
+        with open(outPath, "a") as f:
+            line = "image,call,spots in cytoplasm,spots in nucleus,spots in cell"
+            f.write(line)
+            f.write('\n')
+            for cell in range(nrOfCells):
+                line = str(cell) + ","
 
 
     def getSpotRadius(self):
