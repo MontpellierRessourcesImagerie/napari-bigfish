@@ -54,6 +54,8 @@ class BigfishApp(QObject):
     def runBatch(self, scale, inputImages, cellLabels=None, nucleiMasks=None,
                        subtractBackground=False, decomposeDenseRegions=False):
         self.setProgressMax(len(inputImages))
+        if len(inputImages)<1:
+            return
         outputImagePath = self.getReportOutputPath(inputImages[0])
         for index, inputImagePath in enumerate(inputImages):
             self.data = io.imread(inputImagePath)
@@ -213,9 +215,9 @@ class BigfishApp(QObject):
         table = [0] * self.nrOfCells
         cellLabelAndNucleusFlag = zip(self.cellLabelOfSpot, self.nucleiLabelOfSpot)
         counter = Counter(cellLabelAndNucleusFlag)
-        line0 = [0, 0, 0, counter[0, False]]
-        table[0] = line0
-        for cell in range(1, self.nrOfCells):
+#        line0 = [0, 0, 0, counter[0, False]]
+#        table[0] = line0
+        for cell in range(0, self.nrOfCells):
             notInNucleus = 0
             inNucleus = 0
             if (cell, False) in counter.keys():

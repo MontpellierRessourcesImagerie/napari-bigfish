@@ -908,7 +908,8 @@ class ImageListWidget(QWidget):
                         "Select one or more files to open",
                         self.currentFolder,
                         "Images ("+self.getFileExtensions()+")")
-        self.currentFolder = str(Path(files[0]).parent)
+        if files:
+            self.currentFolder = str(Path(files[0]).parent)
         files.sort()
         for file in files:
            self.model.appendRow(QStandardItem(file))
