@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from enum import Enum
+from datetime import datetime
 from skimage import io
 from collections import Counter
 from qtpy.QtCore import Signal
@@ -53,6 +54,7 @@ class BigfishApp(QObject):
     def runBatch(self, scale, inputImages, cellLabels=None, nucleiMasks=None,
                        subtractBackground=False, decomposeDenseRegions=False):
         self.setProgressMax(len(inputImages))
+        outputImagePath = self.getReportOutputPath(inputImages[0])
         for index, inputImagePath in enumerate(inputImages):
             self.data = io.imread(inputImagePath)
             if subtractBackground:
@@ -65,11 +67,11 @@ class BigfishApp(QObject):
             cellLabelData = None
             if cellLabels:
                 cellLabelData = io.imread(cellLabels[index])
-            nucleiMaskData = None
+            nucleiMasksData = None
             if nucleiMasks:
                 nucleiMasksData = io.imread(nucleiMasks[index])
             self.countSpotsPerCellAndEnvironment(cellLabelData, nucleiMasksData)
-            self.reportSpotCounts(inputImagePath)
+            self.reportSpotCounts(inputImagePath, outputImagePath)
             self.setProgress(index+1)
 
 
@@ -104,22 +106,32 @@ class BigfishApp(QObject):
                 f.write('\n')
 
 
-    def reportSpotCounts(self, inputPath):
+    def reportSpotCounts(self, inputPath, outputPath):
+        table = self.getSpotCountPerCellAndEnvironment()
+        with open(outputPath, "a") as f:
+            for line in table:
+                csvLine = inputPath + "," + ",".join(str(value) for value in line)
+                f.write(csvLine)
+                f.write('\n')
+
+
+    def getReportOutputPath(self, inputPath):
         path = Path(inputPath)
         inFolder, filename = os.path.split(path)
-        outname, _ = os.path.splitext(filename)
-        outname = outname + "-count.csv"
+        parent, folder = os.path.split(inFolder)
+        ts = str(datetime.now())
+        outname = ts + "_" + folder + "_count.csv"
         inFolder = path.parent
         outFolder = os.path.join(inFolder, "results")
         if not os.path.exists(outFolder):
             os.makedirs(outFolder)
         outPath = os.path.join(outFolder, outname)
-        with open(outPath, "a") as f:
-            line = "image,call,spots in cytoplasm,spots in nucleus,spots in cell"
-            f.write(line)
-            f.write('\n')
-            for cell in range(nrOfCells):
-                line = str(cell) + ","
+        if not os.path.exists(outPath):
+            with open(outPath, "a") as f:
+                headings = "image,cell,spots in cytoplasm,spots in nucleus,spots in cell"
+                f.write(headings)
+                f.write('\n')
+        return outPath
 
 
     def getSpotRadius(self):
