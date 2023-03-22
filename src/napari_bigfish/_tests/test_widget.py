@@ -1,6 +1,6 @@
 import numpy as np
 
-from napari_bigfish import DetectFISHSpotsWidget
+from napari_bigfish import DetectFISHSpotsWidget, DetectFISHSpotsBatchWidget
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
@@ -8,12 +8,17 @@ from napari_bigfish import DetectFISHSpotsWidget
 def test_DetectFISHSpotsWidget(make_napari_viewer, capsys):
     viewer = make_napari_viewer()
     viewer.add_image(np.random.random((100, 100)))
-    my_widget = DetectFISHSpotsWidget(viewer)
+    spotsWidget = DetectFISHSpotsWidget(viewer)
 
     # my_widget.onClickSubtractBackground()
     # read captured output and check that it's as we expected
     # captured = capsys.readouterr()
     # assert captured.out == "INFO: Running background subtraction with sigma xy = 2.3, sigma z = 0.75 on Image.\n"
 
+def test_DetectFISHSpotsBatchWidget(make_napari_viewer, capsys):
+    viewer = make_napari_viewer()
+    viewer.add_image(np.random.random((100, 100)))
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    batchWidget = DetectFISHSpotsBatchWidget(viewer, spotsWidget.model)
 
 

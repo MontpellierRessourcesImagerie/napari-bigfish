@@ -5,7 +5,6 @@ import time
 import numpy as np
 import napari
 from pathlib import Path
-from typing import TYPE_CHECKING
 from magicgui import magic_factory
 from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QFormLayout, QListView, QAbstractItemView
 from qtpy.QtWidgets import QPushButton, QWidget, QLabel, QCheckBox, QGroupBox
@@ -22,9 +21,6 @@ from napari_bigfish.bigfishapp import BigfishApp
 from napari_bigfish.qtutil import WidgetTool, TableView
 from napari_bigfish.napari_util import NapariUtil
 
-
-if TYPE_CHECKING:
-    import napari
 
 
 FIELD_WIDTH = 50
@@ -687,6 +683,7 @@ class IndeterminedProgressThread:
     def yieldUndeterminedProgress(self):
         while True:
             time.sleep(0.05)
+            yield
 
 
     def start(self):

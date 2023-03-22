@@ -7,7 +7,25 @@
 [![codecov](https://codecov.io/gh/volker-baecker/napari-bigfish/branch/main/graph/badge.svg)](https://codecov.io/gh/volker-baecker/napari-bigfish)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-bigfish)](https://napari-hub.org/plugins/napari-bigfish)
 
-A plin napari
+A napari-plugin providing an alternative GUI for [Big-FISH](https://github.com/fish-quant/big-fish). Big-FISH is a python package for the analysis of smFISH images.
+
+The plugin provides a graphical user interface for some of the functionality in Big-FISH. Currently implemented are:
+
+ * Gaussian-background subtraction
+ * FISH-spot detection with 
+	* Elimination of duplicates
+	* Auto-detection of threshold
+* Dense-region decomposition
+* Dense-region decomposition
+
+The plugin further implements by itself:
+
+* Counting of spots per cell, inside and outside of the nucleus
+* Batch processing on a list of images
+
+
+ 
+ 
 
 ----------------------------------
 
