@@ -630,7 +630,6 @@ class BatchCountSpotsThread(WorkerThread):
         self.decomposeDenseRegions = decomposeDenseRegions
         self.worker = create_worker(self.batchCountSpots)
 
-        # self.progress = Progress(len(self.inputImages), "Big Fish Batch Processing Started")
 
     def batchFinished(self):
         notifications.show_info("Bigfish batch processing finished!")

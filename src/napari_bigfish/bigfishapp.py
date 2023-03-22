@@ -215,8 +215,6 @@ class BigfishApp(QObject):
         table = [0] * self.nrOfCells
         cellLabelAndNucleusFlag = zip(self.cellLabelOfSpot, self.nucleiLabelOfSpot)
         counter = Counter(cellLabelAndNucleusFlag)
-#        line0 = [0, 0, 0, counter[0, False]]
-#        table[0] = line0
         for cell in range(0, self.nrOfCells):
             notInNucleus = 0
             inNucleus = 0
