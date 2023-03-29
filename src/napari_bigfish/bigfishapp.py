@@ -12,7 +12,7 @@ import numpy as np
 
 class BigfishApp(QObject):
     """
-    Application model for the napari FISH-spot detection widget that runs
+    Application model for the napari FISH-spot detection widget, that runs
     the bigfish gaussian background correction and spot detection.
     """
 
@@ -28,6 +28,8 @@ class BigfishApp(QObject):
     progressSignal = Signal(int, int)
 
     def __init__(self):
+        """The constructor creates a bigfish app with default parameters.
+        """
         super(BigfishApp, self).__init__()
         self.sigmaXY = 2.3
         self.sigmaZ = 0.75
@@ -53,10 +55,23 @@ class BigfishApp(QObject):
 
     def runBatch(self, scale, inputImages, cellLabels=None, nucleiMasks=None,
                        subtractBackground=False, decomposeDenseRegions=False):
+        """Run the processing in batch-mode on the input images.
+
+        :param scale: A tupel with the scales (voxel-sizes) of the images in nm
+                      for the z, y and x dimensions
+        :type scale: 3-tupel of floats
+        :param inputImages: A list of paths to the input images
+        :param cellLabels: An optional list of paths to the cell label images
+        :param nucleiMasks: An optional list of paths to the nuclei mask images
+        :param subtractBackground: A boolean telling wether to subtract the background
+                             before the analysis
+        :param decomposeDenseRegion: A boolean telling wether to decompose dense
+                                     regions for the spot detection
+        """
         self.setProgressMax(len(inputImages))
         if len(inputImages)<1:
             return
-        outputImagePath = self.getReportOutputPath(inputImages[0])
+        outputImagePath = self.createEmptySpotCountReport(inputImages[0])
         for index, inputImagePath in enumerate(inputImages):
             self.data = io.imread(inputImagePath)
             if subtractBackground:
@@ -78,17 +93,29 @@ class BigfishApp(QObject):
 
 
     def setProgressMax(self, max):
+        """Set the max. progress and send the progressSignal with the current
+        and the max. progress.
+        """
         self.progressMax = max
         self.progress = 0
         self.progressSignal.emit(self.progress, self.progressMax)
 
 
     def setProgress(self, progress):
+        """Set the current progress and send the progressSignal with the current
+        and the max. progress.
+        """
         self.progress = progress
         self.progressSignal.emit(self.progress, self.progressMax)
 
 
     def reportSpots(self, inputPath):
+        """Write a csv-file with the coordinates of the detected spots. The
+        file can be opened by napari as a points-layer.
+
+        :param inputPath: The past to the input images; the file will be written
+        into a subdirectory "spots" of that directory.
+        """
         path = Path(inputPath)
         inFolder, filename = os.path.split(path)
         outname, _ = os.path.splitext(filename)
@@ -109,6 +136,12 @@ class BigfishApp(QObject):
 
 
     def reportSpotCounts(self, inputPath, outputPath):
+        """Write a csv-file with the spot-counts.
+
+        :param inputPath: The path of the input image will be reported in the
+                          csv-file
+        :param outputPath: The directory into which the csv-file will be written
+        """
         table = self.getSpotCountPerCellAndEnvironment()
         with open(outputPath, "a") as f:
             for line in table:
@@ -117,7 +150,13 @@ class BigfishApp(QObject):
                 f.write('\n')
 
 
-    def getReportOutputPath(self, inputPath):
+    def createEmptySpotCountReport(self, inputPath):
+        """Create a csv-file, containing only the column headings,
+        for the spot-count-report and return the path to the file. The file
+        is written into a subfolder ``results`` of the input folder.
+
+        :param inputPath: The path to an input image
+        """
         path = Path(inputPath)
         inFolder, filename = os.path.split(path)
         parent, folder = os.path.split(inFolder)
@@ -137,6 +176,9 @@ class BigfishApp(QObject):
 
 
     def getSpotRadius(self):
+        """Return the spot radius in the z, y and x-dimension
+        :rtype: 2 or 3-tupel of float
+        """
         spotRadius = (self.getRadiusXY(), self.getRadiusXY())
         if self.data.ndim > 2:
             spotRadius = (self.getRadiusZ(), self.getRadiusXY(),
@@ -145,12 +187,18 @@ class BigfishApp(QObject):
 
 
     def getScale(self, scale):
+        """Answer the scale (voxel-size) in nm in the different dimensions
+        :rtype: 2 or 3-tupel of float
+        """
         if self.data.ndim == 3 or len(scale) == self.data.ndim:
             return scale
         return (scale[1], scale[2])
 
 
     def getDecomposeSpotRadius(self):
+        """Answer the spot radius for the decomposition of dense regions.
+        :rtype: 2 or 3-tupel of float
+        """
         decomposeSpotRadius = (self.getDecomposeRadiusXY(),
                                self.getDecomposeRadiusXY())
         if self.data.ndim > 2:
@@ -161,6 +209,9 @@ class BigfishApp(QObject):
 
 
     def subtractBackground(self):
+        """Apply the gaussian background removal to the data of the application.
+        The resulting image is stored in the result-attribute.
+        """
         sigma = (self.getSigmaXY(), self.getSigmaXY())
         if self.data.ndim > 2:
             sigma = (self.getSigmaZ(), self.getSigmaXY(), self.getSigmaXY())
@@ -168,6 +219,13 @@ class BigfishApp(QObject):
 
 
     def detectSpots(self, scale):
+        """Run the spot detection step with or without automatic threshold
+        detection.
+
+        :param scale: The scale (voxel size) of the image in the z, y and x
+                      dimensions in nm.
+        :type scale: 2 or 3-tupel of float
+        """
         if self.findThreshold:
             self.spots, threshold = detection.detect_spots(
                 self.data,
@@ -187,6 +245,12 @@ class BigfishApp(QObject):
 
 
     def decomposeDenseRegions(self, scale):
+        """Run the decomposition of the dense regions.
+
+        :param scale: The scale (voxel size) of the image in the z, y and x
+                      dimensions in nm.
+        :type scale: 2 or 3-tupel of float
+        """
         self.spots, denseRegions, referenceSpot = detection.decompose_dense(
             self.data,
             self.spots,
@@ -198,6 +262,18 @@ class BigfishApp(QObject):
 
 
     def countSpotsPerCellAndEnvironment(self, cytoplasmLabels, nucleiLabels):
+        """Counts the number of spots in the image and stores it in the
+        attribute nrOfCells. Creates the cellLabelOfSpot list, that contains
+        the cell-label for each spot and the nucleiLabelOfSpot list, that
+        contains True for all spots that are within a nucleus.
+
+        :param cytoplasmLabels: The cell-labels
+        :type cytoplasmLabels: numpy.ndarray
+        :param nucleiLabels: The nuclei-mask or labels
+        :type nucleiLabels: numpy.ndarray
+        """
+        self.cellLabelOfSpot = []
+        self.nucleiLabelOfSpot = []
         if self.spots is None:
             return False
         self.nrOfCells = len(np.unique(cytoplasmLabels))
@@ -212,6 +288,12 @@ class BigfishApp(QObject):
 
 
     def getSpotCountPerCellAndEnvironment(self):
+        """Returns a table containing the spot-count for each cell, with the
+        number of cells within the nucleus, outside of the nucleus and the total
+        number.
+
+        :rtype: list of lists
+        """
         table = [0] * self.nrOfCells
         cellLabelAndNucleusFlag = zip(self.cellLabelOfSpot, self.nucleiLabelOfSpot)
         counter = Counter(cellLabelAndNucleusFlag)
@@ -356,6 +438,6 @@ class BigfishApp(QObject):
         self.findThresholdSignal.emit(True)
 
 
-    def deactivateRemoveDuplicates(self):
+    def deactivateFindThreshold(self):
         self.findThreshold = False
         self.findThresholdSignal.emit(False)

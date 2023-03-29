@@ -543,7 +543,7 @@ class DetectSpotsThread(WorkerThread):
         '''
         Add the detected spots to the viewer.
 
-        Note that this method needs to bee here and not in the widget, because
+        Note that this method needs to be here and not in the widget, because
         otherwise different threads would potentially read the same data
         (name, scale, ...), which might have been modified in the meantime, for
         example by selecting another input image.
