@@ -315,7 +315,7 @@ class DetectFISHSpotsWidget(QWidget):
 
     @Slot(int)
     def onRemoveDuplicatesChanged(self, state):
-        self.model.removeBackground = (state > 0)
+        self.model.removeDuplicates = (state > 0)
 
 
     @Slot(int)
@@ -557,7 +557,8 @@ class DetectSpotsThread(WorkerThread):
     def detectSpots(self):
         self.model.setData(self.data)
         self.model.detectSpots(tuple(self.scale))
-        return self.model.getSpots()
+        result = self.model.getSpots()
+        return result
 
 
 class DecomposeDenseRegionsThread(WorkerThread):

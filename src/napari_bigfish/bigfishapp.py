@@ -411,8 +411,9 @@ class BigfishApp(QObject):
 
 
     def setThreshold(self, threshold):
-        self.threshold = threshold
-        self.thresholdSignal.emit(threshold)
+        if (not threshold is None):
+            self.threshold = threshold
+            self.thresholdSignal.emit(threshold)
 
 
     def shallRemoveDuplicates(self):
