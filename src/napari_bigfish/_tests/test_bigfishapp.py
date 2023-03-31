@@ -151,3 +151,15 @@ def testGettersAndSetters():
     assert(app.shallFindThreshold() == False)
 
 
+def test_getDecomposeSpotRadius():
+    app = BigfishApp()
+    app.data = np.zeros((2, 3, 4))
+    app.decomposeRadiusXY = 900
+    app.decomposeRadiusZ = 2400
+    radius = app.getDecomposeSpotRadius()
+    assert(radius == (2400, 900, 900))
+
+
+def test_countSpotsPerCellAndEnvironment_noSpots():
+    app = BigfishApp()
+    assert(not app.countSpotsPerCellAndEnvironment(None, None))

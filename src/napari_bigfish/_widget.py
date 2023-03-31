@@ -494,8 +494,6 @@ class WorkerThread:
 
 
 
-
-
 class SubtractBackgroundThread(WorkerThread):
 
 
@@ -617,6 +615,7 @@ class CountSpotsThread(WorkerThread):
         return table
 
 
+
 class BatchCountSpotsThread(WorkerThread):
 
 
@@ -630,10 +629,6 @@ class BatchCountSpotsThread(WorkerThread):
         self.subtractBackground = subtractBackground
         self.decomposeDenseRegions = decomposeDenseRegions
         self.worker = create_worker(self.batchCountSpots)
-
-
-    def batchFinished(self):
-        notifications.show_info("Bigfish batch processing finished!")
 
 
     def batchCountSpots(self):
@@ -713,7 +708,7 @@ class DetectFISHSpotsBatchWidget(QWidget):
             self.scaleXY = activeLayer.scale[-1]
             if activeLayer.data.ndim > 2:
                 self.scaleZ = activeLayer.scale[-3]
-        self.viewer.layers.events.inserted.connect(self.onLayerLoaded) # better use layer.events.loaded
+        self.viewer.layers.events.inserted.connect(self.onLayerLoaded)
         self.fieldWidth = FIELD_WIDTH
         self.maxButtonWidth = MAX_BUTTON_WIDTH
         self.spotDisplaySize = SPOT_DISPLAY_SIZE

@@ -1,9 +1,18 @@
 import sys
 import time
+import logging
 import numpy as np
+from qtpy.QtCore import QItemSelectionModel
+from qtpy.QtWidgets import QFileDialog
 from napari_bigfish import DetectFISHSpotsWidget, DetectFISHSpotsBatchWidget
 from napari_bigfish._widget import SubtractBackgroundThread, DetectSpotsThread
-import logging
+from napari_bigfish._widget import DecomposeDenseRegionsThread, CountSpotsThread
+from napari_bigfish._widget import BatchCountSpotsThread, Progress
+from napari_bigfish._widget import ImageListWidget
+from unittest.mock import MagicMock
+from unittest.mock import patch
+import unittest.mock as mock
+
 
 def test_DetectFISHSpotsWidget(make_napari_viewer, capsys):
     viewer = make_napari_viewer()
@@ -335,3 +344,164 @@ def test_threadDetectSpots(make_napari_viewer):
     thread = DetectSpotsThread(spotsWidget.model, image, viewer, "/a/b/c/image1.tif", (340, 340, 1090), 5)
     result = thread.detectSpots()
     assert(len(result)>0)
+
+
+def test_threadDecomposeDenseRegions(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    image = np.random.randint(0, 255, size=(255, 255), dtype=np.uint16)
+    viewer.add_image(image)
+    spots = np.array([[10, 10], [20, 20], [30, 10], [13, 15], [26, 28], [31, 17]], dtype=np.int64)
+    numberOfDetectedSpots = len(spots)
+    spotsWidget.model.spots = spots
+    thread = DecomposeDenseRegionsThread(spotsWidget.model, image, viewer, "/a/b/c/image1.tif", (340, 340, 1090), 5)
+    result = thread.decompose()
+    assert(len(result)>=numberOfDetectedSpots)
+
+
+def test_threadCountSpots(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    image = np.random.randint(0, 255, size=(255, 255), dtype=np.uint16)
+    cellLabels = np.zeros((255, 255), dtype=np.uint16)
+    nucleiMask = np.zeros((255, 255), dtype=np.uint16)
+    viewer.add_image(image)
+    viewer.add_labels(cellLabels)
+    spots = np.array([[10, 10], [20, 20], [30, 10], [13, 15], [26, 28], [31, 17]], dtype=np.int64)
+    headings = ["image", "cell", "spots in cytoplasm", "spots in nucleus",
+                "spots in cell"]
+    thread = CountSpotsThread(spotsWidget.model, spotsWidget, spots, "my-spots", cellLabels, nucleiMask, headings)
+    table = thread.countSpots()
+    assert(table["spots in cell"][0] == len(spots))
+
+
+@mock.patch('skimage.io.imread')
+@mock.patch('os.makedirs')
+def test_threadBatchCountSpots(mockMakedirs, mockImread, make_napari_viewer, capsys):
+    mockImread.return_value = np.random.randint(0, 255, size=(255, 255, 2), dtype=np.uint16)
+    scale = (300, 300, 1000)
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    inputImages = ["/a/b/i/i1.tif", "/a/b/i/i2.tif"]
+    cellLabels = ["/a/b/l/l1.tif", "/a/b/l/l2.tif"]
+    nucleiMasks = ["/a/b/l/m1.tif", "/a/b/l/m2.tif"]
+    mock.patch('os.path.exists', return_value = True)
+    mock_open = mock.mock_open()
+    with mock.patch('builtins.open', mock_open):
+        thread = BatchCountSpotsThread(scale, spotsWidget.model, inputImages, cellLabels, nucleiMasks,
+                                       subtractBackground=True, decomposeDenseRegions=False)
+        result = thread.batchCountSpots()
+        assert(result is thread)
+
+
+def test_Progress():
+    progress = Progress(None, 100, "Testing progress")
+    progress.progressChanged(50, 100)
+    progress.progressChanged(100, 100)
+    progress.processFinished()
+
+
+def test_detectFISHSpotsBatchWidget3D(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    viewer.window.add_dock_widget(spotsWidget, area='right',
+                                       name="FISH-spot Detection",
+                                       tabify = False)
+    image = np.random.randint(0, 255, size=(255, 255, 2), dtype=np.uint16)
+    viewer.add_image(image)
+    spotsWidget.onClickBatch()
+
+
+def test_detectFISHSpotsBatchWidget_onLayerLoaded(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    viewer.window.add_dock_widget(spotsWidget, area='right',
+                                       name="FISH-spot Detection",
+                                       tabify = False)
+    image = np.random.randint(0, 255, size=(255, 255, 2), dtype=np.uint16)
+    viewer.add_image(image)
+    spotsWidget.onClickBatch()
+    spots = np.array([[10, 10, 10], [20, 20, 20]], dtype=np.int64)
+    viewer.add_points(spots)
+
+
+def test_detectFISHSpotsBatchWidget_updateScaleXY(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    batchSpotsWidget = DetectFISHSpotsBatchWidget(viewer, spotsWidget.model)
+    viewer.window.add_dock_widget(batchSpotsWidget, area='right',
+                                       name="batch FISH-spot Detection",
+                                       tabify = False)
+    assert(batchSpotsWidget.updateScaleXY("330"))
+    assert(batchSpotsWidget.scaleXY == 330)
+    assert(not batchSpotsWidget.updateScaleXY("abc"))
+    assert(batchSpotsWidget.scaleXY == 330)
+
+
+def test_detectFISHSpotsBatchWidget_updateScaleZ(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    batchSpotsWidget = DetectFISHSpotsBatchWidget(viewer, spotsWidget.model)
+    viewer.window.add_dock_widget(batchSpotsWidget, area='right',
+                                       name="batch FISH-spot Detection",
+                                       tabify = False)
+    assert(batchSpotsWidget.updateScaleZ("990"))
+    assert(batchSpotsWidget.scaleZ == 990)
+    assert(not batchSpotsWidget.updateScaleZ("abc"))
+    assert(batchSpotsWidget.scaleZ == 990)
+
+
+def test_detectFISHSpotsBatchWidget_onSubtractBackgroundChanged(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    batchSpotsWidget = DetectFISHSpotsBatchWidget(viewer, spotsWidget.model)
+    viewer.window.add_dock_widget(batchSpotsWidget, area='right',
+                                       name="batch FISH-spot Detection",
+                                       tabify = False)
+    batchSpotsWidget.onSubtractBackgroundChanged(0)
+    assert(not batchSpotsWidget.subtractBackground)
+    batchSpotsWidget.onSubtractBackgroundChanged(2)
+    assert(batchSpotsWidget.subtractBackground)
+
+
+def test_detectFISHSpotsBatchWidget_onDecomposeChanged(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    batchSpotsWidget = DetectFISHSpotsBatchWidget(viewer, spotsWidget.model)
+    viewer.window.add_dock_widget(batchSpotsWidget, area='right',
+                                       name="batch FISH-spot Detection",
+                                       tabify = False)
+    batchSpotsWidget.onDecomposeChanged(0)
+    assert(not batchSpotsWidget.decomposeDenseRegions)
+    batchSpotsWidget.onDecomposeChanged(2)
+    assert(batchSpotsWidget.decomposeDenseRegions)
+
+
+def test_detectFISHSpotsBatchWidget_runBatch(make_napari_viewer):
+    viewer = make_napari_viewer()
+    spotsWidget = DetectFISHSpotsWidget(viewer)
+    batchSpotsWidget = DetectFISHSpotsBatchWidget(viewer, spotsWidget.model)
+    viewer.window.add_dock_widget(batchSpotsWidget, area='right',
+                                       name="batch FISH-spot Detection",
+                                       tabify = False)
+    batchSpotsWidget.runBatch()
+
+
+@mock.patch.object(QFileDialog, 'getOpenFileNames')
+def test_ImageListWidget(mock_filenames):
+    mock_filenames.return_value = (["a/b/c/c_img.tif", "a/b/c/a_img.tif", "a/b/c/b_img.tif"], ".tif")
+    imageList = ImageListWidget("images")
+    assert('*.tif' in imageList.getFileExtensions())
+    imageList.onClickAddFiles()
+    assert(imageList.getValues()[0] == "a/b/c/a_img.tif")
+    assert(len(imageList.getValues()) == 3)
+
+    ix = imageList.model.index(0, 0)
+    sm = imageList.listView.selectionModel()
+    sm.select(ix, QItemSelectionModel.Select)
+    imageList.deleteSelection()
+    assert(imageList.getValues()[0] == "a/b/c/b_img.tif")
+    assert(len(imageList.getValues()) == 2)
+
+    imageList.onClickClearFiles()
+    assert(len(imageList.getValues()) == 0)
