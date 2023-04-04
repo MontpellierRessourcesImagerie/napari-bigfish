@@ -114,7 +114,7 @@ class BigfishApp(QObject):
         file can be opened by napari as a points-layer.
 
         :param inputPath: The past to the input images; the file will be written
-        into a subdirectory "spots" of that directory.
+               into a subdirectory "spots" of that directory.
         """
         path = Path(inputPath)
         inFolder, filename = os.path.split(path)
@@ -177,6 +177,7 @@ class BigfishApp(QObject):
 
     def getSpotRadius(self):
         """Return the spot radius in the z, y and x-dimension
+
         :rtype: 2 or 3-tupel of float
         """
         spotRadius = (self.getRadiusXY(), self.getRadiusXY())
@@ -188,6 +189,7 @@ class BigfishApp(QObject):
 
     def getScale(self, scale):
         """Answer the scale (voxel-size) in nm in the different dimensions
+
         :rtype: 2 or 3-tupel of float
         """
         if self.data.ndim == 3 or len(scale) == self.data.ndim:
@@ -197,7 +199,8 @@ class BigfishApp(QObject):
 
     def getDecomposeSpotRadius(self):
         """Answer the spot radius for the decomposition of dense regions.
-        :rtype: 2 or 3-tupel of float
+
+           :rtype: 2 or 3-tupel of float
         """
         decomposeSpotRadius = (self.getDecomposeRadiusXY(),
                                self.getDecomposeRadiusXY())

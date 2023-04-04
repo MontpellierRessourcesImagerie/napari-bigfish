@@ -4,4 +4,4 @@ napari_bigfish
 .. toctree::
    :maxdepth: 4
 
-   modules
+   napari_bigfish
