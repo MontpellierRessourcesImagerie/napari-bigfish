@@ -1,5 +1,5 @@
-napari_bigfish
-==============
+Documentation of napari-bigfish 
+===============================
 
 .. toctree::
    :maxdepth: 4

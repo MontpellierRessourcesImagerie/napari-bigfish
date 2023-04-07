@@ -12,13 +12,11 @@ import numpy
 from skimage import io
 
 def make_sample_data():
-    """Generates an image"""
-    # Return list of tuples
-    # [(data1, add_image_kwargs1), (data2, add_image_kwargs2)]
-    # Check the documentation for more information about the
-    # add_image_kwargs
-    # https://napari.org/stable/api/napari.Viewer.html#napari.Viewer.add_image
-
+    """Download and return a sample image for the napari-bigfish plugin. The
+    dataset has three layers, one image layer with the FISH-spots, one
+    artificially constructed labels-layer, representing cells and one also
+    artificially constructed labels layer, representing the nuclei.
+    """
     scale = (1000, 108.3424, 108.3424)
     image = io.imread('https://dev.mri.cnrs.fr/attachments/download/2909/3C-02_decon_ch01-1.tif')
     data = numpy.array(image)

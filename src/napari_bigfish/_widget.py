@@ -34,9 +34,19 @@ FILE_EXTENSIONS = ['*.tif', '*.tiff', '*.jpg']
 
 
 class DetectFISHSpotsWidget(QWidget):
+    """ The widget allows to parametrize and run background subtraction
+    and spot detection on the active image.
+
+    The widget regroups the operations ``subtract background``,
+    ``detect spots``, ``decompose dense regions`` and ``count spots``. It also
+    has a button to change to the ``Batch Processing``-widget, which will use
+    the parameters entered here.
+    """
 
 
     def __init__(self, napari_viewer):
+        """The constructor creates and connects the widget.
+        """
         super().__init__()
         self.setModel(BigfishApp())
         self.viewer = napari_viewer
@@ -59,6 +69,10 @@ class DetectFISHSpotsWidget(QWidget):
 
 
     def addSubtractBackgroundWidget(self):
+        """Adds the widget for the background subtration to the layout. The
+        widget has two input fields for the sigma of the Gaussian in xy and z
+        and an action button to run the operation.
+        """
         groupBox = QGroupBox("Background Subtraction")
         formLayout = QFormLayout()
         sigmaXYLabel, self.sigmaXYInput = \
@@ -80,6 +94,11 @@ class DetectFISHSpotsWidget(QWidget):
 
 
     def addDetectSpotsWidget(self):
+        """Adds the widget for the spot detection to the layout. The widget has
+        an input field for the threshold, input fields for the spot radius,
+        checkboxes for the ``remove duplicates``and ``find threshold`` options
+        and an action button to run the operation.
+        """
         groupBox = QGroupBox("Spot Detection")
         formLayout = QFormLayout()
         thresholdLabel, self.thresholdInput = \
@@ -113,6 +132,13 @@ class DetectFISHSpotsWidget(QWidget):
 
 
     def addDecomposeDenseRegionsWidget(self):
+        """
+        Add the widget for the Dense Region Decomposition to the layout. The
+        widget has a combo-box for the selection of the points-layer containing
+        the previously detected spots. It has input fields for the spot radius
+        and for the alpha, beta and gamma parameters. It has an action button to
+        run the operation on the active image layer.
+        """
         groupBox = QGroupBox("Decompose Dense Regions")
         formLayout = QFormLayout()
         spotLayers = self.napariUtil.getPointsLayers()
@@ -151,6 +177,11 @@ class DetectFISHSpotsWidget(QWidget):
 
 
     def addCountSpotsWidget(self):
+        """Add the widget for the Spot Counting operation to the layout. The
+        widget has combo-boxes for the selection of the points-layer containing
+        the spots, the labels layer containing the cells and the labels-layer
+        containing the nuclei. It has an action button to run the operation.
+        """
         groupBox = QGroupBox("Spot Counting")
         formLayout = QVBoxLayout()
         spotLayers = self.napariUtil.getPointsLayers()
@@ -181,6 +212,10 @@ class DetectFISHSpotsWidget(QWidget):
 
 
     def addBatchButton(self):
+        """Adds an action button that closes this widget and opens the batch-
+        processing widget. The model, containg the parameters are transferred
+        to the new widget.
+        """
         layout = QHBoxLayout()
         batchButton = QPushButton("Run Batch")
         batchButton.setMaximumWidth(self.maxButtonWidth)
@@ -483,18 +518,30 @@ class DetectFISHSpotsWidget(QWidget):
 
 
 class WorkerThread:
-
+    """Superclass for the different classes of long running operations, that are
+    meant to be executed in a parallel thread.
+    """
 
     def start(self):
+        """Start the operation in a different thread.
+        """
         self.worker.start()
 
 
     def connectFinished(self, method):
+        """Connect the finished signal of the operation to the given method.
+
+        :param method: The function that will be executed when the operation
+                       finished
+        """
         self.worker.finished.connect(method)
 
 
 
 class SubtractBackgroundThread(WorkerThread):
+    """Run the subtract background operation in a separate thread. When the
+    thread finished, add the result image to the viewer.
+    """
 
 
     def __init__(self, model, data, viewer, name, scale, colormap, blending):
@@ -523,6 +570,10 @@ class SubtractBackgroundThread(WorkerThread):
 
 
 class DetectSpotsThread(WorkerThread):
+    """Run the spot detection in a separate thread. After the spot detection
+    finished, add the detected spots in the form of a points layer to the
+    viewer.
+    """
 
 
     def __init__(self, model, data, viewer, name, scale, spotDisplaySize):
@@ -534,7 +585,6 @@ class DetectSpotsThread(WorkerThread):
         self.spotDisplaySize = spotDisplaySize
         self.worker = create_worker(self.detectSpots)
         self.worker.returned.connect(self.addDetectedSpots)
-
 
 
     def addDetectedSpots(self, data):
@@ -560,6 +610,9 @@ class DetectSpotsThread(WorkerThread):
 
 
 class DecomposeDenseRegionsThread(WorkerThread):
+    """Run the Dense Region Decomposition in a separate thread. When finished,
+    add the resulting spots in the form of a points-layer to the viewer.
+    """
 
 
     def __init__(self, model, data, viewer, name, scale, spotDisplaySize):
@@ -587,7 +640,9 @@ class DecomposeDenseRegionsThread(WorkerThread):
 
 
 class CountSpotsThread(WorkerThread):
-
+    """Run the spot counting in a separate thread. Once the operation
+    finished, ``addSpotCountingTable`` of the parent widget is called.
+    """
 
     def __init__(self, model, parent, spots, spotsName,
                        cytoLabels, nucleiMask, headings):
@@ -617,6 +672,8 @@ class CountSpotsThread(WorkerThread):
 
 
 class BatchCountSpotsThread(WorkerThread):
+    """Run the batch-processing in a separate thread.
+    """
 
 
     def __init__(self, scale, model, inputImages, cellLabels, nucleiMasks,
@@ -644,9 +701,15 @@ class BatchCountSpotsThread(WorkerThread):
 
 
 class Progress(QObject):
-
+    """A progress indicator for operations running in a parallel thread. The
+    operation needs to connect a signal to the progressChanged method, with the
+    current progress and the maximum progress value.
+    """
 
     def __init__(self, parent, maxProgress, description):
+        """Create a new progress-indicator with the given parent-widget, maximum
+        progress value and description.
+        """
         super().__init__(parent)
         self.progress = progress(total=maxProgress)
         self.progress.set_description(description)
@@ -654,6 +717,8 @@ class Progress(QObject):
 
     @Slot(int, int)
     def progressChanged(self, value, maxProgress):
+        """Update the progress value and the max. progress value.
+        """
         self.progress.update(value)
         self.progress.set_description("Processing image {} of {}".format(
                                                                 value,
@@ -667,32 +732,48 @@ class Progress(QObject):
 
 
 class IndeterminedProgressThread:
-
+    """An indetermined progress indicator that moves while an operation is
+    still working.
+    """
 
     def __init__(self, description):
+        """Create a new indetermined progress indicator with the given
+        description.
+        """
         self.worker = create_worker(self.yieldUndeterminedProgress)
         self.progress = progress(total=0)
         self.progress.set_description(description)
 
 
     def yieldUndeterminedProgress(self):
+        """The progress indicator has nothing to do by himself, so just
+        sleep and yield, while still running.
+        """
         while True:
             time.sleep(0.05)
             yield
 
 
     def start(self):
+        """Start the operation in a parallel thread"""
         self.worker.start()
 
 
     def stop(self):
+        """Close the progress indicator and quite the parallel thread.
+        """
         self.progress.close()
         self.worker.quit()
 
 
 
 class DetectFISHSpotsBatchWidget(QWidget):
-
+    """The widget that lets the user select images and start the
+    batch-processing. The widget has input fields for the scale in xy and z,
+    checkboxes for the options ``subtract background`` and ``decompose dense
+    regions``, image-lists for the input images, the cell labels and the nuclei
+    masks and an action button to start the batch-processing.
+    """
 
     def __init__(self, napari_viewer, model):
         super().__init__()
@@ -845,7 +926,10 @@ class DetectFISHSpotsBatchWidget(QWidget):
 
 
 class ImageListWidget(QWidget):
-
+    """An image-list widget that has a list of images, a button that opens
+    a file-dialog to add images, a button to clear the list and a context-menu
+    that allows to remove the selected images from the list.
+    """
 
     def __init__(self, name):
         super().__init__()
