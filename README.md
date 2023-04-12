@@ -1,10 +1,10 @@
 # napari-bigfish
 
-[![License MIT](https://img.shields.io/pypi/l/napari-bigfish.svg?color=green)](https://github.com/volker-baecker/napari-bigfish/raw/main/LICENSE)
+[![License MIT](https://img.shields.io/pypi/l/napari-bigfish.svg?color=green)](https://github.com/MontpellierRessourcesImagerie/napari-bigfish/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-bigfish.svg?color=green)](https://pypi.org/project/napari-bigfish)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-bigfish.svg?color=green)](https://python.org)
-[![tests](https://github.com/volker-baecker/napari-bigfish/workflows/tests/badge.svg)](https://github.com/volker-baecker/napari-bigfish/actions)
-[![codecov](https://codecov.io/gh/volker-baecker/napari-bigfish/branch/main/graph/badge.svg)](https://codecov.io/gh/volker-baecker/napari-bigfish)
+[![tests](https://github.com/MontpellierRessourcesImagerie/napari-bigfish/workflows/tests/badge.svg)](https://github.com/MontpellierRessourcesImagerie/napari-bigfish/actions)
+[![codecov](https://codecov.io/gh/MontpellierRessourcesImagerie/napari-bigfish/branch/main/graph/badge.svg)](https://codecov.io/gh/MontpellierRessourcesImagerie/napari-bigfish)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-bigfish)](https://napari-hub.org/plugins/napari-bigfish)
 
 A napari-plugin providing an alternative GUI for [Big-FISH](https://github.com/fish-quant/big-fish). Big-FISH is a python package for the analysis of smFISH images.
