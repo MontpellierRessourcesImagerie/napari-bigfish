@@ -24,7 +24,7 @@ jobs:
           pip install sphinx sphinx_rtd_theme
       - name: Sphinx build
         run: |
-          sphinx-apidoc -T -f -e -o docs/source/ src/napari_bigfish & pwd & ls & cd docs & make html
+          sphinx-apidoc -T -f -e -o docs/source/ src/napari_bigfish & cd ./docs & pwd & ls & cd docs & make html
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
