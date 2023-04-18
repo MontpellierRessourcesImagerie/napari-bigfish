@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-python@v3
       - name: Install dependencies
         run: |
-         pip install numpy magicgui qtpy pyperclip big-fish
+          pip install numpy magicgui qtpy pyperclip napari big-fish
           pip install sphinx sphinx_rtd_theme
       - name: Sphinx build
         run: |
