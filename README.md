@@ -30,14 +30,6 @@ You can find the user and the api-documentation of napari-bigfish [here](https:/
 
 This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
 
-<!--
-Don't miss the full getting started guide to set up your new package:
-https://github.com/napari/cookiecutter-napari-plugin#getting-started
-
-and review the napari docs for plugin developers:
-https://napari.org/stable/plugins/index.html
--->
-
 ## Installation
 
 You can install `napari-bigfish` via [pip]:
@@ -45,17 +37,17 @@ You can install `napari-bigfish` via [pip]:
     pip install napari-bigfish
 
 
-
-
 ## Contributing
 
 Contributions are very welcome. Tests can be run with [tox], please ensure
 the coverage at least stays the same before you submit a pull request.
 
+
 ## License
 
 Distributed under the terms of the [MIT] license,
 "napari-bigfish" is free and open source software
+
 
 ## Issues
 
