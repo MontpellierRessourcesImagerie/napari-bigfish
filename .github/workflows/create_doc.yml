@@ -17,8 +17,12 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2.2.1
+        with:
+          python-version: 3.9
       - name: Install dependencies
         run: |
           pip install "napari[all]"
