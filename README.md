@@ -1,4 +1,4 @@
-# napari-bigfish
+ napari-bigfish
 
 [![License MIT](https://img.shields.io/pypi/l/napari-bigfish.svg?color=green)](https://github.com/MontpellierRessourcesImagerie/napari-bigfish/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-bigfish.svg?color=green)](https://pypi.org/project/napari-bigfish)
@@ -15,7 +15,6 @@ The plugin provides a graphical user interface for some of the functionality in 
  * FISH-spot detection with 
 	* Elimination of duplicates
 	* Auto-detection of threshold
-* Dense-region decomposition
 * Dense-region decomposition
 
 The plugin further implements by itself:
