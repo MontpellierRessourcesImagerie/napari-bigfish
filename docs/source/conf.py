@@ -81,5 +81,5 @@ def linkcode_resolve(domain, info):
         filename = '%s#L%d-L%d' % find_source()
     except Exception:
         filename = info['module'].replace('.', '/') + '.py'
-    return "https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/%s" % (filename)
+    return "https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/%s" % (filename)
 
