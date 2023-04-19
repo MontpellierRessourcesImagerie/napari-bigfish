@@ -1,4 +1,4 @@
-Documentation of napari-bigfish 
+Documentation of `napari-bigfish <https://github.com/MontpellierRessourcesImagerie/napari-bigfish/>`_
 ===============================
 
 .. toctree::
