@@ -26,6 +26,7 @@ jobs:
           pip install sphinx sphinx_rtd_theme
       - name: Sphinx build
         run: |
+          export PYTHONPATH=.
           pip install -e .
           sphinx-apidoc -T -f -e -o docs/source/ src/napari_bigfish
           cd ./docs
