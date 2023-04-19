@@ -1,4 +1,4 @@
- napari-bigfish
+ # napari-bigfish
 
 [![License MIT](https://img.shields.io/pypi/l/napari-bigfish.svg?color=green)](https://github.com/MontpellierRessourcesImagerie/napari-bigfish/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-bigfish.svg?color=green)](https://pypi.org/project/napari-bigfish)
@@ -23,7 +23,7 @@ The plugin further implements by itself:
 * Batch processing on a list of images
 
 
- 
+You can find the user and the api-documentation of napari-bigfish [here](https://montpellierressourcesimagerie.github.io/napari-bigfish/).
  
 
 ----------------------------------
