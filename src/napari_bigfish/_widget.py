@@ -603,9 +603,19 @@ class DetectSpotsThread(WorkerThread):
 
 
     def detectSpots(self):
-        self.model.setData(self.data)
-        self.model.detectSpots(tuple(self.scale))
+        data = self.data
+        if len(data.shape) > 3:
+            data = np.squeeze(data)
+        if np.amax(data) > 1:
+            data = data / np.amax(data)
+        scale = self.scale
+        if len(scale) > 3:
+            scale = scale[1:len(scale)]
+        self.model.setData(data)
+        self.model.detectSpots(tuple(scale))
         result = self.model.getSpots()
+        if len(result.shape) < len(data.shape):
+            return np.hstack((np.zeros((len(result), 1), dtype=result.dtype), result))
         return result
 
 
