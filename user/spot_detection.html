@@ -1,0 +1,199 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The napari-bigfish plugin &mdash; napari-bigfish v0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=34cd777e"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Batch Processing" href="batch_processing.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            napari-bigfish
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="user_documentation.html">User Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">The napari-bigfish plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#background-subtraction">Background Subtraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#spot-detection">Spot Detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#decompose-dense-regions">Decompose Dense Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#spot-counting">Spot Counting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="batch_processing.html">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API-Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">napari-bigfish</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="user_documentation.html">User Documentation</a></li>
+      <li class="breadcrumb-item active">The napari-bigfish plugin</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user/spot_detection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-napari-bigfish-plugin">
+<h1>The napari-bigfish plugin<a class="headerlink" href="#the-napari-bigfish-plugin" title="Link to this heading"></a></h1>
+<p>Start napari and run <code class="docutils literal notranslate"><span class="pre">Detect</span> <span class="pre">FISH</span> <span class="pre">spots</span> <span class="pre">(napari-bigfish)</span></code> from the menu <code class="docutils literal notranslate"><span class="pre">Plugins</span></code>. Open the image containing the FISH-spots. If you also want to count spots per cell and per category nucleus/cytoplasm, open an image with the cell labels and one with the nuclei mask or labels.</p>
+<img alt="the gui of the napari-bigfish plugin" src="https://dev.mri.cnrs.fr/attachments/download/2945/detect_FISH_spots.png" />
+<p>The plugin comes with an example image that you can open via <code class="docutils literal notranslate"><span class="pre">File&gt;Open</span> <span class="pre">Sample&gt;BigFISH</span> <span class="pre">smFISH</span> <span class="pre">Analysis</span> <span class="pre">(napari-bigfish)</span></code>. This is a synthetic image that contains the FISH-Spots in the background and in 4 “cells” each one with one “nucleus”.</p>
+<img alt="the example input image" src="https://dev.mri.cnrs.fr/attachments/download/2944/bigfish_data.png" />
+<p>When using your own images, make sure that the scale in the image (pixel size in x, y and z) is correctly set. The plugin requires the scale to be in nanometers (nm). If you use the <a class="reference external" href="https://www.napari-hub.org/plugins/napari-J">naparj-j</a> plugin to transfer images from FIJI/ImageJ to napari, you can set the scale in the properties dialog available via <code class="docutils literal notranslate"><span class="pre">Image&gt;Properties...</span></code>.</p>
+<img alt="the properties of the image in FIJI/ImageJ" src="https://dev.mri.cnrs.fr/attachments/download/2947/properties.png" />
+<p>In napari you can check and modify the scale attribute of a layer from the integrated IPython console:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">viewer</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">selection</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">scale</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">array</span><span class="p">([</span><span class="mf">1000.</span>    <span class="p">,</span>  <span class="mf">108.3424</span><span class="p">,</span>  <span class="mf">108.3424</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="background-subtraction">
+<h1>Background Subtraction<a class="headerlink" href="#background-subtraction" title="Link to this heading"></a></h1>
+<img alt="napari-bigfish subtract background" src="https://dev.mri.cnrs.fr/attachments/download/2948/background_subtraction.png" />
+<p>The operation removes the background by subtracting a blurred version of the image from the original image. A new image layer with the result image will be created.</p>
+<dl class="simple">
+<dt><strong>sigma xy</strong></dt><dd><p>The standard deviation of the Gaussian kernel in the xy-plane.</p>
+</dd>
+<dt><strong>sigma z</strong></dt><dd><p>The standard deviation of the Gaussian kernel in the z-dimension.</p>
+</dd>
+<dt>See also:</dt><dd><p><a class="reference external" href="https://big-fish.readthedocs.io/en/stable/stack/preprocessing.html#bigfish.stack.remove_background_gaussian">bigfish.stack.remove_background_gaussian</a></p>
+</dd>
+</dl>
+</section>
+<section id="spot-detection">
+<h1>Spot Detection<a class="headerlink" href="#spot-detection" title="Link to this heading"></a></h1>
+<img alt="napari-bigfish spot detection" src="https://dev.mri.cnrs.fr/attachments/download/2949/spot_detection.png" />
+<p>The operation uses a LoG-filter and a local maximum detection to detect spots. A new points-layer containing the detected spots will be added to the viewer.</p>
+<dl class="simple">
+<dt><strong>threshold</strong></dt><dd><p>The local threshold used for the spot detection. If <code class="docutils literal notranslate"><span class="pre">find</span> <span class="pre">threshold</span></code> is selected, this value will be ignored and the auto-detected threshold value will be used instead. The field will be updated with the detected threshold value.</p>
+</dd>
+<dt><strong>spot radius xy</strong></dt><dd><p>The radius of a spot in the xy-plane in nanometer.</p>
+</dd>
+<dt><strong>spot radius z</strong></dt><dd><p>The radius of a spot in the z-dimension in nanometer.</p>
+</dd>
+<dt><strong>remove duplicates</strong></dt><dd><p>Remove potential duplicate coordinates for the same spots. The option slows the execution.</p>
+</dd>
+<dt><strong>find threshold</strong></dt><dd><p>If selected the threshold is automatically detected, otherwise the value from the threshold-field is used.</p>
+</dd>
+<dt>See also:</dt><dd><p><a class="reference external" href="https://big-fish.readthedocs.io/en/stable/detection/spots.html#bigfish.detection.detect_spots">bigfish.detection.detect_spots</a></p>
+</dd>
+</dl>
+</section>
+<section id="decompose-dense-regions">
+<h1>Decompose Dense Regions<a class="headerlink" href="#decompose-dense-regions" title="Link to this heading"></a></h1>
+<img alt="napari-bigfish decompose dense regions" src="https://dev.mri.cnrs.fr/attachments/download/2950/decompose_dense.png" />
+<p>The operation breaks up clustered regions by building a reference spot and fitting it as many times as possible into the region. A new points-layer with the resulting spots will be added to the viewer.</p>
+<dl class="simple">
+<dt><strong>spots</strong></dt><dd><p>The points layer of the spots from a previous detection to which the decomposition shall be applied.</p>
+</dd>
+<dt><strong>spot radius xy</strong></dt><dd><p>The radius of a spot in the xy-plane in nanometer.</p>
+</dd>
+<dt><strong>spot radius z</strong></dt><dd><p>The radius of a spot in the z-dimension in nanometer.</p>
+</dd>
+<dt><strong>alpha</strong></dt><dd><p>Intensity percentile used to compute the reference spot, between 0 and 1. The higher, the brighter are the spots simulated in the dense regions. Consequently, a high intensity score reduces the number of spots added. Default is 0.5, meaning the reference spot considered is the median spot.</p>
+</dd>
+<dt><strong>beta</strong></dt><dd><p>Multiplicative factor for the intensity threshold of a dense region. Default is 1.</p>
+</dd>
+<dt><strong>gamma</strong></dt><dd><p>Multiplicative factor used to set the gaussian kernel size, for a gaussian background removal. A large gamma increases the scale of the gaussian filter and smooth the estimated background. To decompose very large bright areas, a larger gamma should be set.</p>
+</dd>
+<dt>See also:</dt><dd><p><a class="reference external" href="https://big-fish.readthedocs.io/en/stable/detection/dense.html#bigfish.detection.decompose_dense">bigfish.detection.decompose_dense</a></p>
+</dd>
+</dl>
+</section>
+<section id="spot-counting">
+<h1>Spot Counting<a class="headerlink" href="#spot-counting" title="Link to this heading"></a></h1>
+<img alt="napari-bigfish count spots" src="https://dev.mri.cnrs.fr/attachments/download/2951/Spot_Counting.png" />
+<p>Counts the spots in the image. If a label image for cells is given the spots are counted per cell. If in addition a label image or a binary mask of the nuclei is given the spots within the cytoplasm and the nuclei are counted separately per cell. A table containing the results will be opened in the viewer. The results from the table can be exported to a spreadsheet program using copy and paste.</p>
+<dl class="simple">
+<dt><strong>spots</strong></dt><dd><p>The previously detected spots in the form of a points-layer.</p>
+</dd>
+<dt><strong>cytoplasm labels</strong></dt><dd><p>A labels layer with labels of the cells. The background should have the label 0.</p>
+</dd>
+<dt><strong>nuclei labels of mask</strong></dt><dd><p>A labels layer in which the background has the label 0 and voxels belonging to a nucleus have a value bigger than 0.</p>
+</dd>
+</dl>
+<img alt="napari-bigfish results table" src="https://dev.mri.cnrs.fr/attachments/download/2952/napari-bigfish-results.png" />
+<p>To select the whole table click into the upper-left corner of the table. To copy the selected data use either <code class="docutils literal notranslate"><span class="pre">ctrl+c</span></code> or the contex-menu of the table.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="batch_processing.html" class="btn btn-neutral float-right" title="Batch Processing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Volker Baecker.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
