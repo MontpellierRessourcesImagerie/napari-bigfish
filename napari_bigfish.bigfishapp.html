@@ -1,0 +1,503 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>napari_bigfish.bigfishapp module &mdash; napari-bigfish v0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=34cd777e"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="napari_bigfish.napari_util module" href="napari_bigfish.napari_util.html" />
+    <link rel="prev" title="napari_bigfish.array_util module" href="napari_bigfish.array_util.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            napari-bigfish
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="user/user_documentation.html">User Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API-Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="napari_bigfish.html">napari_bigfish package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="napari_bigfish.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="napari_bigfish.array_util.html">napari_bigfish.array_util module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">napari_bigfish.bigfishapp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="napari_bigfish.napari_util.html">napari_bigfish.napari_util module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="napari_bigfish.qtutil.html">napari_bigfish.qtutil module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="napari_bigfish.html#module-napari_bigfish">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">napari-bigfish</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">API-Documentation</a></li>
+          <li class="breadcrumb-item"><a href="napari_bigfish.html">napari_bigfish package</a></li>
+      <li class="breadcrumb-item active">napari_bigfish.bigfishapp module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/napari_bigfish.bigfishapp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-napari_bigfish.bigfishapp">
+<span id="napari-bigfish-bigfishapp-module"></span><h1>napari_bigfish.bigfishapp module<a class="headerlink" href="#module-napari_bigfish.bigfishapp" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">napari_bigfish.bigfishapp.</span></span><span class="sig-name descname"><span class="pre">BigfishApp</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L13-L447"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">QObject</span></code></p>
+<p>Application model for the napari FISH-spot detection widget, that runs
+the bigfish gaussian background correction and spot detection.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.activateFindThreshold">
+<span class="sig-name descname"><span class="pre">activateFindThreshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L440-L442"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.activateFindThreshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.activateRemoveDuplicates">
+<span class="sig-name descname"><span class="pre">activateRemoveDuplicates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L426-L428"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.activateRemoveDuplicates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.alphaSignal">
+<span class="sig-name descname"><span class="pre">alphaSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.alphaSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.betaSignal">
+<span class="sig-name descname"><span class="pre">betaSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.betaSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.countSpotsPerCellAndEnvironment">
+<span class="sig-name descname"><span class="pre">countSpotsPerCellAndEnvironment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cytoplasmLabels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nucleiLabels</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L267-L290"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.countSpotsPerCellAndEnvironment" title="Link to this definition"></a></dt>
+<dd><p>Counts the number of spots in the image and stores it in the
+attribute nrOfCells. Creates the cellLabelOfSpot list, that contains
+the cell-label for each spot and the nucleiLabelOfSpot list, that
+contains True for all spots that are within a nucleus.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cytoplasmLabels</strong> (<em>numpy.ndarray</em>) – The cell-labels</p></li>
+<li><p><strong>nucleiLabels</strong> (<em>numpy.ndarray</em>) – The nuclei-mask or labels</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.createEmptySpotCountReport">
+<span class="sig-name descname"><span class="pre">createEmptySpotCountReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputPath</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L153-L175"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.createEmptySpotCountReport" title="Link to this definition"></a></dt>
+<dd><p>Create a csv-file, containing only the column headings,
+for the spot-count-report and return the path to the file. The file
+is written into a subfolder <code class="docutils literal notranslate"><span class="pre">results</span></code> of the input folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>inputPath</strong> – The path to an input image</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.deactivateFindThreshold">
+<span class="sig-name descname"><span class="pre">deactivateFindThreshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L445-L447"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.deactivateFindThreshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.deactivateRemoveDuplicates">
+<span class="sig-name descname"><span class="pre">deactivateRemoveDuplicates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L431-L433"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.deactivateRemoveDuplicates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.decomposeDenseRegions">
+<span class="sig-name descname"><span class="pre">decomposeDenseRegions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L250-L264"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.decomposeDenseRegions" title="Link to this definition"></a></dt>
+<dd><p>Run the decomposition of the dense regions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scale</strong> (<em>2</em><em> or </em><em>3-tupel</em><em> of </em><em>float</em>) – The scale (voxel size) of the image in the z, y and x
+dimensions in nm.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.decomposeRadiusSignal">
+<span class="sig-name descname"><span class="pre">decomposeRadiusSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.decomposeRadiusSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.detectSpots">
+<span class="sig-name descname"><span class="pre">detectSpots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L224-L247"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.detectSpots" title="Link to this definition"></a></dt>
+<dd><p>Run the spot detection step with or without automatic threshold
+detection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scale</strong> (<em>2</em><em> or </em><em>3-tupel</em><em> of </em><em>float</em>) – The scale (voxel size) of the image in the z, y and x
+dimensions in nm.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.findThresholdSignal">
+<span class="sig-name descname"><span class="pre">findThresholdSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.findThresholdSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.gammaSignal">
+<span class="sig-name descname"><span class="pre">gammaSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.gammaSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getAlpha">
+<span class="sig-name descname"><span class="pre">getAlpha</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L369-L370"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getAlpha" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getBeta">
+<span class="sig-name descname"><span class="pre">getBeta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L378-L379"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getBeta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getData">
+<span class="sig-name descname"><span class="pre">getData</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L400-L401"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getData" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getDecomposeRadiusXY">
+<span class="sig-name descname"><span class="pre">getDecomposeRadiusXY</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L351-L352"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getDecomposeRadiusXY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getDecomposeRadiusZ">
+<span class="sig-name descname"><span class="pre">getDecomposeRadiusZ</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L360-L361"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getDecomposeRadiusZ" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getDecomposeSpotRadius">
+<span class="sig-name descname"><span class="pre">getDecomposeSpotRadius</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L200-L211"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getDecomposeSpotRadius" title="Link to this definition"></a></dt>
+<dd><p>Answer the spot radius for the decomposition of dense regions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2 or 3-tupel of float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getGamma">
+<span class="sig-name descname"><span class="pre">getGamma</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L387-L388"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getGamma" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getRadiusXY">
+<span class="sig-name descname"><span class="pre">getRadiusXY</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L333-L334"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getRadiusXY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getRadiusZ">
+<span class="sig-name descname"><span class="pre">getRadiusZ</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L342-L343"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getRadiusZ" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getResult">
+<span class="sig-name descname"><span class="pre">getResult</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L404-L405"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getResult" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getScale">
+<span class="sig-name descname"><span class="pre">getScale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L190-L197"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getScale" title="Link to this definition"></a></dt>
+<dd><p>Answer the scale (voxel-size) in nm in the different dimensions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2 or 3-tupel of float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getSigmaXY">
+<span class="sig-name descname"><span class="pre">getSigmaXY</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L315-L316"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getSigmaXY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getSigmaZ">
+<span class="sig-name descname"><span class="pre">getSigmaZ</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L324-L325"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getSigmaZ" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getSpotCountPerCellAndEnvironment">
+<span class="sig-name descname"><span class="pre">getSpotCountPerCellAndEnvironment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L293-L312"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getSpotCountPerCellAndEnvironment" title="Link to this definition"></a></dt>
+<dd><p>Returns a table containing the spot-count for each cell, with the
+number of cells within the nucleus, outside of the nucleus and the total
+number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of lists</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getSpotRadius">
+<span class="sig-name descname"><span class="pre">getSpotRadius</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L178-L187"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getSpotRadius" title="Link to this definition"></a></dt>
+<dd><p>Return the spot radius in the z, y and x-dimension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2 or 3-tupel of float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getSpots">
+<span class="sig-name descname"><span class="pre">getSpots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L408-L409"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getSpots" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.getThreshold">
+<span class="sig-name descname"><span class="pre">getThreshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L412-L413"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.getThreshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.progressSignal">
+<span class="sig-name descname"><span class="pre">progressSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.progressSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.radiusSignal">
+<span class="sig-name descname"><span class="pre">radiusSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.radiusSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.removeDuplicatesSignal">
+<span class="sig-name descname"><span class="pre">removeDuplicatesSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.removeDuplicatesSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.reportSpotCounts">
+<span class="sig-name descname"><span class="pre">reportSpotCounts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputPath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputPath</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L138-L150"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.reportSpotCounts" title="Link to this definition"></a></dt>
+<dd><p>Write a csv-file with the spot-counts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputPath</strong> – The path of the input image will be reported in the
+csv-file</p></li>
+<li><p><strong>outputPath</strong> – The directory into which the csv-file will be written</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.reportSpots">
+<span class="sig-name descname"><span class="pre">reportSpots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputPath</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L112-L135"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.reportSpots" title="Link to this definition"></a></dt>
+<dd><p>Write a csv-file with the coordinates of the detected spots. The
+file can be opened by napari as a points-layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>inputPath</strong> – The past to the input images; the file will be written
+into a subdirectory “spots” of that directory.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.runBatch">
+<span class="sig-name descname"><span class="pre">runBatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputImages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellLabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nucleiMasks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subtractBackground</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decomposeDenseRegions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L56-L92"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.runBatch" title="Link to this definition"></a></dt>
+<dd><p>Run the processing in batch-mode on the input images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> (<em>3-tupel</em><em> of </em><em>floats</em>) – A tupel with the scales (voxel-sizes) of the images in nm
+for the z, y and x dimensions</p></li>
+<li><p><strong>inputImages</strong> – A list of paths to the input images</p></li>
+<li><p><strong>cellLabels</strong> – An optional list of paths to the cell label images</p></li>
+<li><p><strong>nucleiMasks</strong> – An optional list of paths to the nuclei mask images</p></li>
+<li><p><strong>subtractBackground</strong> – A boolean telling wether to subtract the background
+before the analysis</p></li>
+<li><p><strong>decomposeDenseRegion</strong> – A boolean telling wether to decompose dense
+regions for the spot detection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setAlpha">
+<span class="sig-name descname"><span class="pre">setAlpha</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L373-L375"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setAlpha" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setBeta">
+<span class="sig-name descname"><span class="pre">setBeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L382-L384"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setBeta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setData">
+<span class="sig-name descname"><span class="pre">setData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L396-L397"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setData" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setDecomposeRadiusXY">
+<span class="sig-name descname"><span class="pre">setDecomposeRadiusXY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L355-L357"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setDecomposeRadiusXY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setDecomposeRadiusZ">
+<span class="sig-name descname"><span class="pre">setDecomposeRadiusZ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L364-L366"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setDecomposeRadiusZ" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setGamma">
+<span class="sig-name descname"><span class="pre">setGamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L391-L393"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setGamma" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setProgress">
+<span class="sig-name descname"><span class="pre">setProgress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">progress</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L104-L109"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setProgress" title="Link to this definition"></a></dt>
+<dd><p>Set the current progress and send the progressSignal with the current
+and the max. progress.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setProgressMax">
+<span class="sig-name descname"><span class="pre">setProgressMax</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L95-L101"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setProgressMax" title="Link to this definition"></a></dt>
+<dd><p>Set the max. progress and send the progressSignal with the current
+and the max. progress.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setRadiusXY">
+<span class="sig-name descname"><span class="pre">setRadiusXY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L337-L339"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setRadiusXY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setRadiusZ">
+<span class="sig-name descname"><span class="pre">setRadiusZ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L346-L348"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setRadiusZ" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setSigmaXY">
+<span class="sig-name descname"><span class="pre">setSigmaXY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigmaXY</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L319-L321"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setSigmaXY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setSigmaZ">
+<span class="sig-name descname"><span class="pre">setSigmaZ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigmaZ</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L328-L330"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setSigmaZ" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.setThreshold">
+<span class="sig-name descname"><span class="pre">setThreshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L416-L419"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.setThreshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.shallFindThreshold">
+<span class="sig-name descname"><span class="pre">shallFindThreshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L436-L437"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.shallFindThreshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.shallRemoveDuplicates">
+<span class="sig-name descname"><span class="pre">shallRemoveDuplicates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L422-L423"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.shallRemoveDuplicates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.sigmaSignal">
+<span class="sig-name descname"><span class="pre">sigmaSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.sigmaSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.subtractBackground">
+<span class="sig-name descname"><span class="pre">subtractBackground</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/src/napari_bigfish/bigfishapp.py#L214-L221"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.subtractBackground" title="Link to this definition"></a></dt>
+<dd><p>Apply the gaussian background removal to the data of the application.
+The resulting image is stored in the result-attribute.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="napari_bigfish.bigfishapp.BigfishApp.thresholdSignal">
+<span class="sig-name descname"><span class="pre">thresholdSignal</span></span><a class="reference external" href="https://github.com/MontpellierRessourcesImagerie/napari-bigfish/blob/main/napari_bigfish/bigfishapp.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#napari_bigfish.bigfishapp.BigfishApp.thresholdSignal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="napari_bigfish.array_util.html" class="btn btn-neutral float-left" title="napari_bigfish.array_util module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="napari_bigfish.napari_util.html" class="btn btn-neutral float-right" title="napari_bigfish.napari_util module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Volker Baecker.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
