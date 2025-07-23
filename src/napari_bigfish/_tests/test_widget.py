@@ -26,7 +26,8 @@ def test_DetectFISHSpotsWidget(make_napari_viewer, capsys):
     assert captured.out == "INFO: Running background subtraction with sigma xy = 2.3, sigma z = 0.75 on Image.\n"
     viewer.layers.selection.active = None
     spotsWidget.onClickSubtractBackground()
-
+    captured = capsys.readouterr()
+    assert captured.out == "ERROR: Subtract background needs an image!\n"
 
 
 def test_DetectFISHSpotsBatchWidget(make_napari_viewer, capsys):

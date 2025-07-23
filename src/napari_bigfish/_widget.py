@@ -195,6 +195,7 @@ class DetectFISHSpotsWidget(QWidget):
         cytoLabel, self.cytoCombo = WidgetTool.getComboInput(self,
                                             "cytoplasm labels: ",
                                             labelLayers)
+        self.cytoCombo.setMaximumWidth(COMBO_BOX_MAX_WIDTH)
         nucleiLabel, self.nucleiCombo = WidgetTool.getComboInput(self,
                                             "nuclei labels or mask: ",
                                             labelLayers)
