@@ -24,6 +24,7 @@ from napari_bigfish.napari_util import NapariUtil
 
 
 FIELD_WIDTH = 50
+COMBO_BOX_MAX_WIDTH = 150
 MAX_BUTTON_WIDTH = 200
 MIN_LIST_WIDTH = 200
 MIN_LIST_HEIGHT = 100
@@ -145,6 +146,7 @@ class DetectFISHSpotsWidget(QWidget):
         spotsLabel, self.decomposeSpotsCombo = WidgetTool.getComboInput(self,
                                             "spots: ",
                                             spotLayers)
+        self.decomposeSpotsCombo.setMaximumWidth(COMBO_BOX_MAX_WIDTH)
         radiusXYLabel, self.decomposeRadiusXYInput = \
          WidgetTool.getLineInput(self, "spot radius xy: ",self.model.getDecomposeRadiusXY(),
                                  self.fieldWidth, self.updateDecomposeRadiusXY)
@@ -188,6 +190,7 @@ class DetectFISHSpotsWidget(QWidget):
         spotsLabel, self.spotsCombo = WidgetTool.getComboInput(self,
                                             "spots: ",
                                             spotLayers)
+        self.spotsCombo.setMaximumWidth(COMBO_BOX_MAX_WIDTH)
         labelLayers = self.napariUtil.getLabelLayers()
         cytoLabel, self.cytoCombo = WidgetTool.getComboInput(self,
                                             "cytoplasm labels: ",
@@ -195,6 +198,7 @@ class DetectFISHSpotsWidget(QWidget):
         nucleiLabel, self.nucleiCombo = WidgetTool.getComboInput(self,
                                             "nuclei labels or mask: ",
                                             labelLayers)
+        self.nucleiCombo.setMaximumWidth(COMBO_BOX_MAX_WIDTH)
         countSpotsButton = QPushButton("Count Spots")
         countSpotsButton.setMaximumWidth(self.maxButtonWidth)
         countSpotsButton.clicked.connect(self.onClickCountSpots)
